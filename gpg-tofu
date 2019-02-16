@@ -1,0 +1,241 @@
+#!/usr/bin/sbcl --script
+;; -*- mode:lisp -*-
+;;
+;; gpg-tofu - Display TOFU statistics for GnuPG public keys
+;;
+;; Author: Teemu Likonen <tlikonen@iki.fi>
+;;
+;; License: Public domain
+;;
+;; This program is distributed in the hope that it will be useful, but
+;; WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+(defpackage #:gpg-tofu
+  (:use #:cl))
+
+(in-package #:gpg-tofu)
+
+(defun split-string (string)
+  (loop :with items
+        :with start := 0
+        :for end := (position #\: string :start start)
+        :do (push (subseq string start end) items)
+            (if end
+                (setf start (1+ end))
+                (loop-finish))
+        :finally (return (nreverse items))))
+
+(defun string-replace (string search replace)
+  (assert (plusp (length search)) (search)
+          "Can't search for zero length SEARCH string.")
+  (with-output-to-string (out)
+    (loop :with length-search := (length search)
+          :for pos := 0 :then (+ find length-search)
+          :for find := (search search string :start2 pos)
+          :if find :do
+            (princ (subseq string pos find) out)
+            (princ replace out)
+          :else :do
+            (princ (subseq string pos) out)
+            (loop-finish))))
+
+(defun escape-characters (string esc-chars esc)
+  "STRING = merkkijono, joka suojataan
+ESC-CHARS = nämä merkit suojataan (merkkijono)
+ESC = tämän merkin avulla suojataan (merkki)"
+  (with-output-to-string (out)
+    (loop :for char :across string
+          :do (when (find char esc-chars)
+                (princ esc out))
+              (princ char out))))
+
+(defun format-user-id (string)
+  ;; Tämän pitäisi purkaa C-kielen merkkijono.
+  ;; /usr/share/doc/gnupg/DETAILS.gz
+  (setf string (string-replace string "\\x3a" ":"))
+  (escape-characters string "\\" #\\))
+
+(defun parse-time-stamp (time-stamp)
+  (cond ((or (string= time-stamp "")
+             (string= time-stamp "0"))
+         nil)
+        ((every #'digit-char-p time-stamp)
+         (+ (parse-integer time-stamp)
+            2208988800))                ;1970-01-01T00:00:00Z
+        ((and (>= (length time-stamp) 15)
+              (char= #\T (aref time-stamp 8))
+              (every #'digit-char-p (subseq time-stamp 0 8))
+              (every #'digit-char-p (subseq time-stamp 9 15)))
+         (let ((year (parse-integer (subseq time-stamp 0 4)))
+               (month (parse-integer (subseq time-stamp 4 6)))
+               (day (parse-integer (subseq time-stamp 6 8)))
+               (hour (parse-integer (subseq time-stamp 9 11)))
+               (min (parse-integer (subseq time-stamp 11 13)))
+               (sec (parse-integer (subseq time-stamp 13 15))))
+           (encode-universal-time sec min hour day month year 0)))))
+
+(defun format-time-stamp (universal-time)
+  (multiple-value-bind (second minute hour date month year
+                        day daylight-p zone)
+      (decode-universal-time universal-time 0)
+    (format nil "~4,'0D-~2,'0D-~2,'0D ~2,'0D:~2,'0D:~2,'0D"
+            year month date hour minute second)))
+
+(defun format-validity (string)
+  (if (>= (length string) 1)
+      (let ((char (aref string 0)))
+        (case char
+          (#\o "unknown")
+          (#\i "invalid")
+          (#\d "disabled")
+          (#\r "revoked")
+          (#\e "expired")
+          (#\- "unknown")
+          (#\q "undefined")
+          (#\n "never")
+          (#\m "marginal")
+          (#\f "full")
+          (#\u "ultimate")
+          (#\s "special")
+          (t "")))
+      ""))
+
+(defun format-time-interval (seconds)
+  (let* ((seconds-in-day #. (* 60 60 24))
+         (days (truncate seconds seconds-in-day))
+         (hours (truncate seconds 3600))
+         (minutes (truncate seconds 60)))
+    (cond
+      ((and (<= 0 seconds)
+            (< seconds 60))
+       (format nil "~D second~:*~P" seconds))
+      ((and (<= 0 minutes)
+            (< minutes 60))
+       (format nil "~D minute~:*~P" minutes))
+      ((and (<= 1 hours)
+            (< hours 24))
+       (format nil "~D hour~:*~P" hours))
+      ((and (<= 1 days)
+            (< days 365))
+       (format nil "~D day~:*~P" days))
+      ((= 365 days)
+       (format nil "1 year"))
+      ((< 365 days)
+       (let* ((seconds-in-year #. (* 60 60 24 365))
+              (years (truncate seconds seconds-in-year))
+              (days (truncate (- seconds (* years seconds-in-year))
+                              seconds-in-day)))
+         (format nil "~D year~:*~P ~D day~:*~P"
+                 years days))))))
+
+(defun echo (format &rest arguments)
+  (apply #'format t format arguments))
+
+(defun main (&optional args)
+  (with-open-stream
+      (gpg (sb-ext:process-output
+            (sb-ext:run-program "gpg" (list* "--batch" "--no-tty"
+                                             "--with-tofu-info"
+                                             "--with-colons"
+                                             "--list-keys"
+                                             "--" args)
+                                :search t :wait nil
+                                :output :stream)))
+
+    (loop :with key
+          :for line := (read-line gpg nil)
+          :for fields := (if line (split-string line))
+          :while line :do
+            (cond
+              ((string= "pub" (nth 0 fields))
+               (setf key t))
+              ((string= "sub" (nth 0 fields))
+               (setf key nil))
+
+              (key
+               (cond
+                 ((string= "fpr" (nth 0 fields))
+                  (echo "~A~%" (nth 9 fields)))
+                 ((string= "uid" (nth 0 fields))
+                  (echo "  [~8A] ~A~%"
+                        (format-validity (nth 1 fields))
+                        (format-user-id (nth 9 fields))))
+
+                 ((and (string= "tfs" (nth 0 fields))
+                       (string= "1" (nth 1 fields)))
+                  (let ((tofu-validity (parse-integer (nth 2 fields)))
+                        (signature-count (parse-integer (nth 3 fields)))
+                        (encryption-count (parse-integer (nth 4 fields)))
+                        (policy (nth 5 fields))
+                        (signature-first-seen
+                          (parse-time-stamp (nth 6 fields)))
+                        (signature-most-recent-seen
+                          (parse-time-stamp (nth 7 fields)))
+                        (encryption-first-done
+                          (parse-time-stamp (nth 8 fields)))
+                        (encryption-most-recent-done
+                          (parse-time-stamp (nth 9 fields))))
+
+                    (echo "    TOFU validity: (~D/4) ~A, TOFU policy: ~A~%"
+                          tofu-validity
+                          (case tofu-validity
+                            (0 "conflict")
+                            (1 "no history")
+                            (2 "little history")
+                            (3 "enough history for basic trust")
+                            (4 "a lot of history for trust")
+                            (t "unknown"))
+                          policy)
+
+                    (when (plusp signature-count)
+                      (echo "    ~D signature~:*~P" signature-count)
+                      (when (and signature-first-seen
+                                 signature-most-recent-seen)
+                        (cond
+                          ((plusp (- signature-most-recent-seen
+                                     signature-first-seen))
+                           (echo " in ~A" (format-time-interval
+                                           (- signature-most-recent-seen
+                                              signature-first-seen)))
+                           (echo ", first: ~A"
+                                 (format-time-stamp
+                                  signature-first-seen))
+                           (echo ", last: ~A"
+                                 (format-time-stamp
+                                  signature-most-recent-seen)))
+                          ((zerop (- signature-most-recent-seen
+                                     signature-first-seen))
+                           (echo " in ~A" (format-time-stamp
+                                           signature-most-recent-seen))))
+                        (echo "~%")))
+
+                    (when (plusp encryption-count)
+                      (echo "    ~D encryption~:*~P" encryption-count)
+                      (when (and encryption-first-done
+                                 encryption-most-recent-done)
+                        (cond
+                          ((plusp (- encryption-most-recent-done
+                                     encryption-first-done))
+                           (echo " in ~A" (format-time-interval
+                                           (- encryption-most-recent-done
+                                              encryption-first-done)))
+                           (echo ", first: ~A"
+                                 (format-time-stamp
+                                  encryption-first-done))
+                           (echo ", last: ~A"
+                                 (format-time-stamp
+                                  encryption-most-recent-done)))
+                          ((zerop (- encryption-most-recent-done
+                                     encryption-first-done))
+                           (echo " in ~A" (format-time-stamp
+                                           encryption-most-recent-done))))
+                        (echo "~%")))))))))))
+
+(handler-case (main (rest sb-ext:*posix-argv*))
+  (sb-int:simple-stream-error ()
+    nil)
+  (sb-sys:interactive-interrupt ()
+    (terpri))
+  (serious-condition (c)
+    (format *error-output* "~&~A~%" c)))
