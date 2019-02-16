@@ -41,9 +41,6 @@
             (loop-finish))))
 
 (defun escape-characters (string esc-chars esc)
-  "STRING = merkkijono, joka suojataan
-ESC-CHARS = nämä merkit suojataan (merkkijono)
-ESC = tämän merkin avulla suojataan (merkki)"
   (with-output-to-string (out)
     (loop :for char :across string
           :do (when (find char esc-chars)
@@ -51,8 +48,7 @@ ESC = tämän merkin avulla suojataan (merkki)"
               (princ char out))))
 
 (defun format-user-id (string)
-  ;; Tämän pitäisi purkaa C-kielen merkkijono.
-  ;; /usr/share/doc/gnupg/DETAILS.gz
+  ;; This should actually decode C language string.
   (setf string (string-replace string "\\x3a" ":"))
   (escape-characters string "\\" #\\))
 
