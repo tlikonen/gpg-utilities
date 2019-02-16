@@ -90,7 +90,7 @@
   (let ((now (get-universal-time)))
     (cond ((string= expire ""))
           ((every #'digit-char-p expire)
-           (>= (+ (parse-integer expire) 
+           (>= (+ (parse-integer expire)
                   2208988800)           ;1970-01-01T00:00:00+0000
                now))
           ((and (>= (length expire) 15)
@@ -131,7 +131,7 @@
               ((string= "sub" (nth 0 fields))
                (setf key-id nil))
               (key-id
-               (cond 
+               (cond
                  ((and (string= "uid" (nth 0 fields))
                        (not (get-user-id key-id)))
                   (set-user-id key-id (prepare-user-id (nth 9 fields))))
