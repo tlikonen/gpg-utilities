@@ -24,8 +24,7 @@ Examples
 
 Usage: `gpg-tofu [key1 ...]`
 
-$ gpg-tofu Werner
-
+    $ gpg-tofu Werner
     80615870F5BAD690333686D0F2AD85AC1E42B367
       [full    ] Werner Koch <wk@gnupg.org>
         TOFU validity: (4/4) a lot of history for trust, TOFU policy: good
