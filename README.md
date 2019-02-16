@@ -26,8 +26,6 @@ Examples
 
 Usage: `gpg-graph [key1 ...]`
 
-Examples:
-
     gpg-graph kernel.org | dot -Tpng >wot-dot.png
     gpg-graph kernel.org | neato -Tpng >wot-neato.png
     gpg-graph kernel.org | sfdp -Tpng >wot-sfdp.png
@@ -36,7 +34,7 @@ Examples:
 Author and license
 ------------------
 
-Author:  Teemu Likonen <<tlikonen@iki.fi>>
+Author: Teemu Likonen <<tlikonen@iki.fi>>
 
 PGP: [4E10 55DC 84E9 DFF6 13D7 8557 719D 69D3 2453 9450][PGP]
 
