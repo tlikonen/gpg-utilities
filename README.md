@@ -24,21 +24,14 @@ Examples
 
 Usage: `gpg-tofu [key1 ...]`
 
-    $ gpg-tofu Werner
-    80615870F5BAD690333686D0F2AD85AC1E42B367
-      [full    ] Werner Koch <wk@gnupg.org>
+    $ gpg-tofu tlikonen@iki.fi
+
+    4E1055DC84E9DFF613D78557719D69D324539450
+      [ultimate] Teemu Likonen <tlikonen@iki.fi>
         TOFU validity: (4/4) a lot of history for trust, TOFU policy: good
-        340 signatures in 1 year 251 days, first: 2017-06-09 11:28:33, last: 2019-02-15 19:11:54
-      [full    ] Werner Koch <wk@g10code.com>
-        TOFU validity: (4/4) a lot of history for trust, TOFU policy: good
-        340 signatures in 1 year 251 days, first: 2017-06-09 11:28:33, last: 2019-02-15 19:11:54
-      [full    ] Werner Koch <werner@eifzilla.de>
-        TOFU validity: (4/4) a lot of history for trust, TOFU policy: good
-        340 signatures in 1 year 251 days, first: 2017-06-09 11:28:33, last: 2019-02-15 19:11:54
-    D8692123C4065DEA5E0F3AB5249B39D24F25E3B6
-      [full    ] Werner Koch (dist sig)
-        TOFU validity: (2/4) little history, TOFU policy: good
-        1 signature in 2017-10-20 16:28:59
+        428 signatures in 1 year 252 days, first: 2017-06-09 11:28:16, last: 2019-02-16 19:36:03
+        404 encryptions in 1 year 244 days, first: 2017-06-15 14:41:30, last: 2019-02-14 19:25:41
+    [...]
 
 
 Author and license
