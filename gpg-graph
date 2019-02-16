@@ -1,0 +1,181 @@
+#!/usr/bin/sbcl --script
+;; -*- mode:lisp -*-
+;;
+;; gpg-graph - a Graphviz front-end for web of trust graphcs
+;;
+;; Author: Teemu Likonen <tlikonen@iki.fi>
+;;
+;; License: Public domain
+;;
+;; This program is distributed in the hope that it will be useful, but
+;; WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+(defpackage #:gpg-graph
+  (:use #:cl))
+
+(in-package #:gpg-graph)
+
+(defvar *keys* (make-hash-table :test #'equal))
+
+(defclass key ()
+  ((user-id :accessor user-id :initform nil)
+   (certificates-from :accessor certificates-from :initform nil)
+   (cerfificates-for :accessor certificates-for :initform nil)))
+
+(defun get-key (key-id)
+  (or (gethash key-id *keys*)
+      (setf (gethash key-id *keys*) (make-instance 'key))))
+
+(defun get-user-id (key-id)
+  (user-id (get-key key-id)))
+
+(defun set-user-id (key-id user-id)
+  (setf (user-id (get-key key-id)) user-id))
+
+(defun certificates-for-p (key-id cert-id)
+  (member cert-id (certificates-for (get-key key-id)) :test #'equal))
+
+(defun list-of-certificates-from (key-id)
+  (copy-list (certificates-from (get-key key-id))))
+
+(defun add-certificates-from (key-id cert-id)
+  (pushnew cert-id (certificates-from (get-key key-id)) :test #'equal))
+
+(defun add-certificates-for (key-id cert-id)
+  (pushnew cert-id (certificates-for (get-key key-id)) :test #'equal))
+
+(defun remove-certificates-from (key-id cert-id)
+  (let ((key (get-key key-id)))
+    (setf (certificates-from key)
+          (remove cert-id (certificates-from key) :test #'equal))))
+
+(defun split-string (string)
+  (loop :with items
+        :with start := 0
+        :for end := (position #\: string :start start)
+        :do (push (subseq string start end) items)
+            (if end
+                (setf start (1+ end))
+                (loop-finish))
+        :finally (return (nreverse items))))
+
+(defun string-replace (string search replace)
+  (assert (plusp (length search)) (search)
+          "Can't search for zero length SEARCH string.")
+  (with-output-to-string (out)
+    (loop :with length-search := (length search)
+          :for pos := 0 :then (+ find length-search)
+          :for find := (search search string :start2 pos)
+          :if find :do
+            (princ (subseq string pos find) out)
+            (princ replace out)
+          :else :do
+            (princ (subseq string pos) out)
+            (loop-finish))))
+
+(defun escape-characters (string esc-chars esc)
+  "STRING = merkkijono, joka suojataan
+ESC-CHARS = nämä merkit suojataan (merkkijono)
+ESC = tämän merkin avulla suojataan (merkki)"
+  (with-output-to-string (out)
+    (loop :for char :across string
+          :do (when (find char esc-chars)
+                (princ esc out))
+              (princ char out))))
+
+(defun prepare-user-id (string)
+  ;; Tämän pitäisi purkaa C-kielen merkkijono.
+  ;; /usr/share/doc/gnupg/DETAILS.gz
+  (setf string (string-replace string "\\x3a" ":"))
+  (escape-characters string "\\" #\\))
+
+(defun sig-not-expired-p (expire)
+  (let ((now (get-universal-time)))
+    (cond ((string= expire ""))
+          ((every #'digit-char-p expire)
+           (>= (+ (parse-integer expire) 
+                  2208988800)           ;1970-01-01T00:00:00+0000
+               now))
+          ((and (>= (length expire) 15)
+                (char= #\T (aref expire 8))
+                (every #'digit-char-p (subseq expire 0 8))
+                (every #'digit-char-p (subseq expire 9 15)))
+           (let ((year (parse-integer (subseq expire 0 4)))
+                 (month (parse-integer (subseq expire 4 6)))
+                 (day (parse-integer (subseq expire 6 8)))
+                 (hour (parse-integer (subseq expire 9 11)))
+                 (min (parse-integer (subseq expire 11 13)))
+                 (sec (parse-integer (subseq expire 13 15))))
+             (>= (encode-universal-time sec min hour day month
+                                        year 0)
+                 now)))
+          (t))))
+
+(defun main (&optional args)
+  (clrhash *keys*)
+
+  (with-open-stream
+      (gpg (sb-ext:process-output
+            (sb-ext:run-program "gpg" (list* "--batch" "--no-tty"
+                                             "--with-colons"
+                                             "--check-signatures"
+                                             "--" args)
+                                :search t :wait nil
+                                :output :stream)))
+
+    (loop :with key-id
+          :with cert-id
+          :for line := (read-line gpg nil)
+          :for fields := (if line (split-string line))
+          :while line :do
+            (cond
+              ((string= "pub" (nth 0 fields))
+               (setf key-id (nth 4 fields)))
+              ((string= "sub" (nth 0 fields))
+               (setf key-id nil))
+              (key-id
+               (cond 
+                 ((and (string= "uid" (nth 0 fields))
+                       (not (get-user-id key-id)))
+                  (set-user-id key-id (prepare-user-id (nth 9 fields))))
+                 ((and (string= "sig" (nth 0 fields))
+                       (plusp (length (nth 1 fields)))
+                       (char= #\! (aref (nth 1 fields) 0))
+                       (string/= key-id (setf cert-id (nth 4 fields)))
+                       (sig-not-expired-p (nth 6 fields)))
+                  (add-certificates-from key-id cert-id)
+                  (add-certificates-for cert-id key-id)))))))
+
+  (format t "~
+digraph \"GnuPG key graph\" {
+  overlap=scale;
+  splines=true;
+  node [shape=box];
+")
+
+  (loop :for key-id :being :each :hash-key :in *keys*
+        :for user-id := (get-user-id key-id)
+        :if user-id :do
+          (format t "  \"~A\" [label=\"~A\\n~A\"];~%"
+                  key-id user-id key-id)
+
+          (loop :for cert-id :in (list-of-certificates-from key-id)
+                :if (get-user-id cert-id) :do
+                  (cond
+                    ((certificates-for-p key-id cert-id)
+                     (format t "    \"~A\" -> \"~A\" [dir=both];~%"
+                             cert-id key-id)
+                     (remove-certificates-from cert-id key-id))
+                    (t (format t "    \"~A\" -> \"~A\" [dir=forward];~%"
+                               cert-id key-id)))))
+
+  (format t "}~%"))
+
+(handler-case (main (rest sb-ext:*posix-argv*))
+  (sb-int:simple-stream-error ()
+    nil)
+  (sb-sys:interactive-interrupt ()
+    (terpri))
+  (serious-condition (c)
+    (format *error-output* "~&~A~%" c)))
