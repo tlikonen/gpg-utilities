@@ -118,7 +118,8 @@
                                              "--check-signatures"
                                              "--" args)
                                 :search t :wait nil
-                                :output :stream)))
+                                :output :stream
+                                :error *error-output*)))
 
     (loop :with key-id
           :with cert-id
