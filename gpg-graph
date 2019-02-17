@@ -122,7 +122,6 @@
                                 :error *error-output*)))
 
     (loop :with key-id
-          :with cert-id
           :for line := (read-line gpg nil)
           :for fields := (if line (split-string line))
           :while line :do
@@ -139,10 +138,11 @@
                  ((and (string= "sig" (nth 0 fields))
                        (plusp (length (nth 1 fields)))
                        (char= #\! (aref (nth 1 fields) 0))
-                       (string/= key-id (setf cert-id (nth 4 fields)))
+                       (string/= key-id (nth 4 fields))
                        (cert-not-expired-p (nth 6 fields)))
-                  (add-certificates-from key-id cert-id)
-                  (add-certificates-for cert-id key-id)))))))
+                  (let ((cert-id (nth 4 fields)))
+                    (add-certificates-from key-id cert-id)
+                    (add-certificates-for cert-id key-id))))))))
 
   (format t "~
 digraph \"GnuPG key graph\" {
