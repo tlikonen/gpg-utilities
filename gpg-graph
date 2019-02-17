@@ -115,6 +115,15 @@
                 now)))
           (t))))
 
+(defun format-fingerprint (fingerprint)
+  (with-output-to-string (out)
+    (loop :for char :across fingerprint
+          :for i :upfrom 1
+          :do (princ char out)
+              (when (and (zerop (rem i 4))
+                         (not (= i (length fingerprint))))
+                (princ #\Space out)))))
+
 (defun main (&optional args)
   (clrhash *keys*)
 
@@ -166,7 +175,8 @@ digraph \"GnuPG key graph\" {
         :for user-id := (get-user-id key-id)
         :if user-id :do
           (format t "  \"~A\" [label=\"~A\\n~A\"];~%"
-                  key-id user-id (get-fingerprint key-id))
+                  key-id user-id (format-fingerprint
+                                  (get-fingerprint key-id)))
 
           (loop :for cert-id :in (list-of-certificates-from key-id)
                 :if (get-user-id cert-id) :do
