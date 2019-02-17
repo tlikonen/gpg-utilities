@@ -139,7 +139,6 @@
                                 :error *error-output*)))
 
     (loop :with key-id
-          :with fingerprint
           :for line := (read-line gpg nil)
           :for fields := (if line (split-string line))
           :while line :do
