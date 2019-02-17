@@ -99,9 +99,9 @@
 
 (defun format-time-interval (seconds)
   (let* ((seconds-in-day #. (* 60 60 24))
-         (days (truncate seconds seconds-in-day))
-         (hours (truncate seconds 3600))
-         (minutes (truncate seconds 60)))
+         (days (round seconds seconds-in-day))
+         (hours (round seconds 3600))
+         (minutes (round seconds 60)))
     (cond
       ((and (<= 0 seconds)
             (< seconds 60))
@@ -119,11 +119,10 @@
        (format nil "1 year"))
       ((< 365 days)
        (let* ((seconds-in-year #. (* 60 60 24 365))
-              (years (truncate seconds seconds-in-year))
-              (days (truncate (- seconds (* years seconds-in-year))
-                              seconds-in-day)))
-         (format nil "~D year~:*~P ~D day~:*~P"
-                 years days))))))
+              (full-years (truncate seconds seconds-in-year))
+              (days (round (- seconds (* full-years seconds-in-year))
+                           seconds-in-day)))
+         (format nil "~D year~:*~P ~D day~:*~P" full-years days))))))
 
 (defun echo (format &rest arguments)
   (apply #'format t format arguments))
