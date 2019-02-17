@@ -1,14 +1,14 @@
-GPG-tofu
+GPG Tofu
 =========
 
-**Display trust on first use (TOFU) statistics of a GnuPG keys**
+**Display "trust on first use" (TOFU) statistics of a GnuPG keys**
 
 
 Introduction
 ------------
 
 `gpg-tofu` is a command-line tool which inputs public key data from
-`gpg` ([GnuPG][]) security tool and outputs trust on first use (TOFU)
+`gpg` ([GnuPG][]) security tool and outputs "trust on first use" (TOFU)
 statistics about the keys.
 
 The program is written in the Common Lisp language and requires [Steel
