@@ -190,7 +190,7 @@
                                  (format-time-stamp signature-first))
                            (echo ", last: ~A"
                                  (format-time-stamp signature-last)))
-                          ((zerop (- signature-last signature-first))
+                          ((= signature-last signature-first)
                            (echo " in ~A" (format-time-stamp signature-last))))
                         (echo "~%")))
 
@@ -206,7 +206,7 @@
                                  (format-time-stamp encryption-first))
                            (echo ", last: ~A"
                                  (format-time-stamp encryption-last)))
-                          ((zerop (- encryption-last encryption-first))
+                          ((= encryption-last encryption-first)
                            (echo " in ~A"
                                  (format-time-stamp encryption-last))))
                         (echo "~%")))))))))))
