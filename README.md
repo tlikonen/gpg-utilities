@@ -38,7 +38,7 @@ Author: Teemu Likonen <<tlikonen@iki.fi>>
 
 PGP: [4E10 55DC 84E9 DFF6 13D7 8557 719D 69D3 2453 9450][PGP]
 
-License: Public domain
+No restrictions for use: this program is placed in the public domain.
 
 This program is distributed in the hope that it will be useful, but
 WITHOUT ANY WARRANTY; without even the implied warranty of
