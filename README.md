@@ -1,4 +1,4 @@
-GPG-graph
+GPG Graph
 =========
 
 **Draw web of trust graphs of a GnuPG keyring**
