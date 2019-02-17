@@ -128,7 +128,8 @@
                                              "--list-keys"
                                              "--" args)
                                 :search t :wait nil
-                                :output :stream)))
+                                :output :stream
+                                :error *error-output*)))
 
     (loop :with key
           :for line := (read-line gpg nil)
