@@ -163,14 +163,10 @@
                         (signature-count (parse-integer (nth 3 fields)))
                         (encryption-count (parse-integer (nth 4 fields)))
                         (policy (nth 5 fields))
-                        (signature-first-seen
-                          (parse-time-stamp (nth 6 fields)))
-                        (signature-most-recent-seen
-                          (parse-time-stamp (nth 7 fields)))
-                        (encryption-first-done
-                          (parse-time-stamp (nth 8 fields)))
-                        (encryption-most-recent-done
-                          (parse-time-stamp (nth 9 fields))))
+                        (signature-first (parse-time-stamp (nth 6 fields)))
+                        (signature-last (parse-time-stamp (nth 7 fields)))
+                        (encryption-first (parse-time-stamp (nth 8 fields)))
+                        (encryption-last (parse-time-stamp (nth 9 fields))))
 
                     (echo "    TOFU validity: (~D/4) ~A, TOFU policy: ~A~%"
                           tofu-validity
@@ -185,46 +181,34 @@
 
                     (when (plusp signature-count)
                       (echo "    ~D signature~:*~P" signature-count)
-                      (when (and signature-first-seen
-                                 signature-most-recent-seen)
+                      (when (and signature-first signature-last)
                         (cond
-                          ((plusp (- signature-most-recent-seen
-                                     signature-first-seen))
+                          ((plusp (- signature-last signature-first))
                            (echo " in ~A" (format-time-interval
-                                           (- signature-most-recent-seen
-                                              signature-first-seen)))
+                                           (- signature-last signature-first)))
                            (echo ", first: ~A"
-                                 (format-time-stamp
-                                  signature-first-seen))
+                                 (format-time-stamp signature-first))
                            (echo ", last: ~A"
-                                 (format-time-stamp
-                                  signature-most-recent-seen)))
-                          ((zerop (- signature-most-recent-seen
-                                     signature-first-seen))
-                           (echo " in ~A" (format-time-stamp
-                                           signature-most-recent-seen))))
+                                 (format-time-stamp signature-last)))
+                          ((zerop (- signature-last signature-first))
+                           (echo " in ~A" (format-time-stamp signature-last))))
                         (echo "~%")))
 
                     (when (plusp encryption-count)
                       (echo "    ~D encryption~:*~P" encryption-count)
-                      (when (and encryption-first-done
-                                 encryption-most-recent-done)
+                      (when (and encryption-first encryption-last)
                         (cond
-                          ((plusp (- encryption-most-recent-done
-                                     encryption-first-done))
-                           (echo " in ~A" (format-time-interval
-                                           (- encryption-most-recent-done
-                                              encryption-first-done)))
+                          ((plusp (- encryption-last encryption-first))
+                           (echo " in ~A"
+                                 (format-time-interval
+                                  (- encryption-last encryption-first)))
                            (echo ", first: ~A"
-                                 (format-time-stamp
-                                  encryption-first-done))
+                                 (format-time-stamp encryption-first))
                            (echo ", last: ~A"
-                                 (format-time-stamp
-                                  encryption-most-recent-done)))
-                          ((zerop (- encryption-most-recent-done
-                                     encryption-first-done))
-                           (echo " in ~A" (format-time-stamp
-                                           encryption-most-recent-done))))
+                                 (format-time-stamp encryption-last)))
+                          ((zerop (- encryption-last encryption-first))
+                           (echo " in ~A"
+                                 (format-time-stamp encryption-last))))
                         (echo "~%")))))))))))
 
 (handler-case (main (rest sb-ext:*posix-argv*))
