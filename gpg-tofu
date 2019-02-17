@@ -40,17 +40,9 @@
             (princ (subseq string pos) out)
             (loop-finish))))
 
-(defun escape-characters (string esc-chars esc)
-  (with-output-to-string (out)
-    (loop :for char :across string
-          :do (when (find char esc-chars)
-                (princ esc out))
-              (princ char out))))
-
 (defun format-user-id (string)
   ;; This should actually decode C language string.
-  (setf string (string-replace string "\\x3a" ":"))
-  (escape-characters string "\\" #\\))
+  (string-replace string "\\x3a" ":"))
 
 (defun parse-time-stamp (time-stamp)
   (cond ((or (string= time-stamp "")
