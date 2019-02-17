@@ -20,6 +20,7 @@
 
 (defclass key ()
   ((user-id :accessor user-id :initform nil)
+   (fingerprint :accessor fingerprint :initform nil)
    (certificates-from :accessor certificates-from :initform nil)
    (cerfificates-for :accessor certificates-for :initform nil)))
 
@@ -32,6 +33,12 @@
 
 (defun set-user-id (key-id user-id)
   (setf (user-id (get-key key-id)) user-id))
+
+(defun get-fingerprint (key-id)
+  (fingerprint (get-key key-id)))
+
+(defun set-fingerprint (key-id fingerprint)
+  (setf (fingerprint (get-key key-id)) fingerprint))
 
 (defun certificates-for-p (key-id cert-id)
   (member cert-id (certificates-for (get-key key-id)) :test #'equal))
@@ -115,6 +122,7 @@
       (gpg (sb-ext:process-output
             (sb-ext:run-program "gpg" (list* "--batch" "--no-tty"
                                              "--with-colons"
+                                             "--with-fingerprint"
                                              "--check-signatures"
                                              "--" args)
                                 :search t :wait nil
@@ -122,6 +130,7 @@
                                 :error *error-output*)))
 
     (loop :with key-id
+          :with fingerprint
           :for line := (read-line gpg nil)
           :for fields := (if line (split-string line))
           :while line :do
@@ -132,6 +141,8 @@
                (setf key-id nil))
               (key-id
                (cond
+                 ((string= "fpr" (nth 0 fields))
+                  (set-fingerprint key-id (nth 9 fields)))
                  ((and (string= "uid" (nth 0 fields))
                        (not (get-user-id key-id)))
                   (set-user-id key-id (prepare-user-id (nth 9 fields))))
@@ -155,7 +166,7 @@ digraph \"GnuPG key graph\" {
         :for user-id := (get-user-id key-id)
         :if user-id :do
           (format t "  \"~A\" [label=\"~A\\n~A\"];~%"
-                  key-id user-id key-id)
+                  key-id user-id (get-fingerprint key-id))
 
           (loop :for cert-id :in (list-of-certificates-from key-id)
                 :if (get-user-id cert-id) :do
