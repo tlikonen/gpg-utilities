@@ -29,8 +29,8 @@ Usage: `gpg-tofu [key1 ...]`
     4E1055DC84E9DFF613D78557719D69D324539450
       [ultimate] Teemu Likonen <tlikonen@iki.fi>
         TOFU validity: (4/4) a lot of history for trust, TOFU policy: good
-        428 signatures in 1 year 252 days, first: 2017-06-09 11:28:16, last: 2019-02-16 19:36:03
-        404 encryptions in 1 year 244 days, first: 2017-06-15 14:41:30, last: 2019-02-14 19:25:41
+        429 signatures in 1 year 253 days, first: 2017-06-09 11:28:16Z, last: 2019-02-17 06:33:48Z
+        404 encryptions in 1 year 244 days, first: 2017-06-15 14:41:30Z, last: 2019-02-14 19:25:41Z
     [...]
 
 
