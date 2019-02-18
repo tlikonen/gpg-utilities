@@ -145,13 +145,12 @@
           :while line :do
             (cond
               ((string= "pub" (nth 0 fields))
-               (setf key t
-                     want-empty-line t))
-              ((string= "sub" (nth 0 fields))
-               (setf key nil)
+               (setf key t)
                (when want-empty-line
-                 (echo "~%")
-                 (setf want-empty-line nil)))
+                 (echo "~%"))
+               (setf want-empty-line t))
+              ((string= "sub" (nth 0 fields))
+               (setf key nil))
 
               (key
                (cond
