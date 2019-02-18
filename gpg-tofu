@@ -138,82 +138,87 @@
                                 :output :stream
                                 :error *error-output*)))
 
-    (loop :with key
-          :with want-empty-line
+    (loop :with expect :with want-empty-line
           :for line := (read-line gpg nil)
           :for fields := (if line (split-string line))
           :while line :do
+
             (cond
               ((string= "pub" (nth 0 fields))
-               (setf key t)
-               (when want-empty-line
-                 (echo "~%"))
+               (setf expect '(:fpr))
+               (when want-empty-line (echo "~%"))
                (setf want-empty-line t))
+
+              ((and (member :fpr expect)
+                    (string= "fpr" (nth 0 fields)))
+               (setf expect '(:uid))
+               (echo "pub ~A~%" (nth 9 fields)))
+
               ((string= "sub" (nth 0 fields))
-               (setf key nil))
+               (setf expect nil))
 
-              (key
-               (cond
-                 ((string= "fpr" (nth 0 fields))
-                  (echo "pub ~A~%" (nth 9 fields)))
-                 ((string= "uid" (nth 0 fields))
-                  (echo "uid [~8A] ~A~%"
-                        (format-validity (nth 1 fields) 8)
-                        (format-user-id (nth 9 fields))))
+              ((and (member :uid expect)
+                    (string= "uid" (nth 0 fields)))
+               (setf expect '(:tfs :uid))
+               (echo "uid [~8A] ~A~%"
+                     (format-validity (nth 1 fields) 8)
+                     (format-user-id (nth 9 fields))))
 
-                 ((and (string= "tfs" (nth 0 fields))
-                       (string= "1" (nth 1 fields)))
-                  (let ((tofu-validity (parse-integer (nth 2 fields)))
-                        (signature-count (parse-integer (nth 3 fields)))
-                        (encryption-count (parse-integer (nth 4 fields)))
-                        (policy (nth 5 fields))
-                        (signature-first (parse-time-stamp (nth 6 fields)))
-                        (signature-last (parse-time-stamp (nth 7 fields)))
-                        (encryption-first (parse-time-stamp (nth 8 fields)))
-                        (encryption-last (parse-time-stamp (nth 9 fields))))
+              ((and (member :tfs expect)
+                    (string= "tfs" (nth 0 fields))
+                    (string= "1" (nth 1 fields)))
+               (setf expect '(:uid))
+               (let ((tofu-validity (parse-integer (nth 2 fields)))
+                     (signature-count (parse-integer (nth 3 fields)))
+                     (encryption-count (parse-integer (nth 4 fields)))
+                     (policy (nth 5 fields))
+                     (signature-first (parse-time-stamp (nth 6 fields)))
+                     (signature-last (parse-time-stamp (nth 7 fields)))
+                     (encryption-first (parse-time-stamp (nth 8 fields)))
+                     (encryption-last (parse-time-stamp (nth 9 fields))))
 
-                    (echo "    TOFU validity: (~D/4) ~A, TOFU policy: ~A~%"
-                          tofu-validity
-                          (case tofu-validity
-                            (0 "conflict")
-                            (1 "no history")
-                            (2 "little history")
-                            (3 "enough history for basic trust")
-                            (4 "a lot of history for trust")
-                            (t "unknown"))
-                          policy)
+                 (echo "    TOFU validity: (~D/4) ~A, TOFU policy: ~A~%"
+                       tofu-validity
+                       (case tofu-validity
+                         (0 "conflict")
+                         (1 "no history")
+                         (2 "little history")
+                         (3 "enough history for basic trust")
+                         (4 "a lot of history for trust")
+                         (t "unknown"))
+                       policy)
 
-                    (when (plusp signature-count)
-                      (echo "    ~D signature~:*~P" signature-count)
-                      (when (and signature-first signature-last)
-                        (cond
-                          ((plusp (- signature-last signature-first))
-                           (echo " in ~A" (format-time-interval
-                                           (- signature-last signature-first)))
-                           (echo ", first: ~A"
-                                 (format-time-stamp signature-first))
-                           (echo ", last: ~A"
-                                 (format-time-stamp signature-last)))
-                          ((= signature-last signature-first)
-                           (echo " in ~A" (format-time-stamp signature-last))))
-                        (echo "~%")))
+                 (when (plusp signature-count)
+                   (echo "    ~D signature~:*~P" signature-count)
+                   (when (and signature-first signature-last)
+                     (cond
+                       ((plusp (- signature-last signature-first))
+                        (echo " in ~A" (format-time-interval
+                                        (- signature-last signature-first)))
+                        (echo ", first: ~A"
+                              (format-time-stamp signature-first))
+                        (echo ", last: ~A"
+                              (format-time-stamp signature-last)))
+                       ((= signature-last signature-first)
+                        (echo " in ~A" (format-time-stamp signature-last))))
+                     (echo "~%")))
 
-                    (when (plusp encryption-count)
-                      (echo "    ~D encryption~:*~P" encryption-count)
-                      (when (and encryption-first encryption-last)
-                        (cond
-                          ((plusp (- encryption-last encryption-first))
-                           (echo " in ~A"
-                                 (format-time-interval
-                                  (- encryption-last encryption-first)))
-                           (echo ", first: ~A"
-                                 (format-time-stamp encryption-first))
-                           (echo ", last: ~A"
-                                 (format-time-stamp encryption-last)))
-                          ((= encryption-last encryption-first)
-                           (echo " in ~A"
-                                 (format-time-stamp encryption-last))))
-                        (echo "~%")))))))))))
+                 (when (plusp encryption-count)
+                   (echo "    ~D encryption~:*~P" encryption-count)
+                   (when (and encryption-first encryption-last)
+                     (cond
+                       ((plusp (- encryption-last encryption-first))
+                        (echo " in ~A"
+                              (format-time-interval
+                               (- encryption-last encryption-first)))
+                        (echo ", first: ~A"
+                              (format-time-stamp encryption-first))
+                        (echo ", last: ~A"
+                              (format-time-stamp encryption-last)))
+                       ((= encryption-last encryption-first)
+                        (echo " in ~A"
+                              (format-time-stamp encryption-last))))
+                     (echo "~%")))))))))
 
 (handler-case (main (rest sb-ext:*posix-argv*))
   (sb-int:simple-stream-error ()
