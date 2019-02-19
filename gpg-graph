@@ -139,29 +139,39 @@
                                 :error *error-output*)))
 
     (loop :with key-id
+          :with expect
           :for line := (read-line gpg nil)
           :for fields := (if line (split-string line))
+
           :while line :do
             (cond
               ((string= "pub" (nth 0 fields))
+               (setf expect '(:fpr))
                (setf key-id (nth 4 fields)))
+
               ((string= "sub" (nth 0 fields))
-               (setf key-id nil))
-              (key-id
-               (cond
-                 ((string= "fpr" (nth 0 fields))
-                  (set-fingerprint key-id (nth 9 fields)))
-                 ((and (string= "uid" (nth 0 fields))
-                       (not (get-user-id key-id)))
-                  (set-user-id key-id (prepare-user-id (nth 9 fields))))
-                 ((and (string= "sig" (nth 0 fields))
-                       (plusp (length (nth 1 fields)))
-                       (char= #\! (aref (nth 1 fields) 0))
-                       (string/= key-id (nth 4 fields))
-                       (cert-not-expired-p (nth 6 fields)))
-                  (let ((cert-id (nth 4 fields)))
-                    (add-certificates-from key-id cert-id)
-                    (add-certificates-for cert-id key-id))))))))
+               (setf expect nil))
+
+              ((and (member :fpr expect)
+                    (string= "fpr" (nth 0 fields)))
+               (setf expect '(:uid))
+               (set-fingerprint key-id (nth 9 fields)))
+
+              ((and (member :uid expect)
+                    (string= "uid" (nth 0 fields))
+                    (not (get-user-id key-id)))
+               (setf expect '(:sig))
+               (set-user-id key-id (prepare-user-id (nth 9 fields))))
+
+              ((and (member :sig expect)
+                    (string= "sig" (nth 0 fields))
+                    (plusp (length (nth 1 fields)))
+                    (char= #\! (aref (nth 1 fields) 0))
+                    (string/= key-id (nth 4 fields))
+                    (cert-not-expired-p (nth 6 fields)))
+               (let ((cert-id (nth 4 fields)))
+                 (add-certificates-from key-id cert-id)
+                 (add-certificates-for cert-id key-id))))))
 
   (format t "~
 digraph \"GnuPG key graph\" {
