@@ -16,7 +16,7 @@
 
 (in-package #:gpg-tofu)
 
-(defun split-string (string)
+(defun split-colon-string (string)
   (loop :with items
         :with start := 0
         :for end := (position #\: string :start start)
@@ -140,7 +140,7 @@
 
     (loop :with expect :with want-empty-line
           :for line := (read-line gpg nil)
-          :for fields := (if line (split-string line))
+          :for fields := (if line (split-colon-string line))
           :while line :do
 
             (cond
