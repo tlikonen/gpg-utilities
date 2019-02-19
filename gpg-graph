@@ -57,7 +57,7 @@
     (setf (certificates-from key)
           (remove cert-id (certificates-from key) :test #'equal))))
 
-(defun split-string (string)
+(defun split-colon-string (string)
   (loop :with items
         :with start := 0
         :for end := (position #\: string :start start)
@@ -141,7 +141,7 @@
     (loop :with key-id
           :with expect
           :for line := (read-line gpg nil)
-          :for fields := (if line (split-string line))
+          :for fields := (if line (split-colon-string line))
 
           :while line :do
             (cond
