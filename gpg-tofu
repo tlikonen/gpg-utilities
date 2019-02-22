@@ -220,6 +220,7 @@
                               (format-time-stamp encryption-last))))
                      (echo "~%")))))))))
 
+#-interactive
 (handler-case (main (rest sb-ext:*posix-argv*))
   (sb-int:simple-stream-error ()
     nil)
