@@ -199,6 +199,7 @@ digraph \"GnuPG key graph\" {
 
   (format t "}~%"))
 
+#-interactive
 (handler-case (main (rest sb-ext:*posix-argv*))
   (sb-int:simple-stream-error ()
     nil)
