@@ -24,36 +24,24 @@
    (certificates-from :accessor certificates-from :initform nil)
    (cerfificates-for :accessor certificates-for :initform nil)))
 
-(defun get-key (key-id)
+(defun get-create-key (key-id)
   (or (gethash key-id *keys*)
       (setf (gethash key-id *keys*) (make-instance 'key))))
 
-(defun get-user-id (key-id)
-  (user-id (get-key key-id)))
-
-(defun set-user-id (key-id user-id)
-  (setf (user-id (get-key key-id)) user-id))
-
-(defun get-fingerprint (key-id)
-  (fingerprint (get-key key-id)))
-
-(defun set-fingerprint (key-id fingerprint)
-  (setf (fingerprint (get-key key-id)) fingerprint))
-
 (defun certificates-for-p (key-id cert-id)
-  (member cert-id (certificates-for (get-key key-id)) :test #'equal))
+  (member cert-id (certificates-for (get-create-key key-id)) :test #'equal))
 
 (defun list-of-certificates-from (key-id)
-  (copy-list (certificates-from (get-key key-id))))
+  (copy-list (certificates-from (get-create-key key-id))))
 
 (defun add-certificates-from (key-id cert-id)
-  (pushnew cert-id (certificates-from (get-key key-id)) :test #'equal))
+  (pushnew cert-id (certificates-from (get-create-key key-id)) :test #'equal))
 
 (defun add-certificates-for (key-id cert-id)
-  (pushnew cert-id (certificates-for (get-key key-id)) :test #'equal))
+  (pushnew cert-id (certificates-for (get-create-key key-id)) :test #'equal))
 
 (defun remove-certificates-from (key-id cert-id)
-  (let ((key (get-key key-id)))
+  (let ((key (get-create-key key-id)))
     (setf (certificates-from key)
           (remove cert-id (certificates-from key) :test #'equal))))
 
@@ -138,8 +126,7 @@
                                 :output :stream
                                 :error *error-output*)))
 
-    (loop :with key-id
-          :with expect
+    (loop :with key-id :with key :with expect
           :for line := (read-line gpg nil)
           :for fields := (if line (split-colon-string line))
 
@@ -147,7 +134,8 @@
             (cond
               ((string= "pub" (nth 0 fields))
                (setf expect '(:fpr))
-               (setf key-id (nth 4 fields)))
+               (setf key-id (nth 4 fields))
+               (setf key (get-create-key key-id)))
 
               ((string= "sub" (nth 0 fields))
                (setf expect nil))
@@ -155,13 +143,13 @@
               ((and (member :fpr expect)
                     (string= "fpr" (nth 0 fields)))
                (setf expect '(:uid))
-               (set-fingerprint key-id (nth 9 fields)))
+               (setf (fingerprint key) (nth 9 fields)))
 
               ((and (member :uid expect)
                     (string= "uid" (nth 0 fields))
-                    (not (get-user-id key-id)))
+                    (not (user-id key)))
                (setf expect '(:sig))
-               (set-user-id key-id (prepare-user-id (nth 9 fields))))
+               (setf (user-id key) (prepare-user-id (nth 9 fields))))
 
               ((and (member :sig expect)
                     (string= "sig" (nth 0 fields))
@@ -181,14 +169,14 @@ digraph \"GnuPG key graph\" {
 ")
 
   (loop :for key-id :being :each :hash-key :in *keys*
-        :for user-id := (get-user-id key-id)
+          :using (hash-value key)
+        :for user-id := (user-id key)
         :if user-id :do
           (format t "  \"~A\" [label=\"~A\\n~A\"];~%"
-                  key-id user-id (format-fingerprint
-                                  (get-fingerprint key-id)))
+                  key-id user-id (format-fingerprint (fingerprint key)))
 
           (loop :for cert-id :in (list-of-certificates-from key-id)
-                :if (get-user-id cert-id) :do
+                :if (user-id (gethash cert-id *keys*)) :do
                   (cond
                     ((certificates-for-p key-id cert-id)
                      (format t "    \"~A\" -> \"~A\" [dir=both];~%"
