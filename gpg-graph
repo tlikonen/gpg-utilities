@@ -1,7 +1,7 @@
 #!/usr/bin/sbcl --script
 ;; -*- mode:lisp -*-
 ;;
-;; gpg-graph - A Graphviz front-end for web of trust graphcs
+;; gpg-graph - Draw web of trust graphs of a GnuPG keyring
 ;;
 ;; Author: Teemu Likonen <tlikonen@iki.fi>
 ;;
