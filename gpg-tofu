@@ -126,7 +126,7 @@
 (defun echo (format &rest arguments)
   (apply #'format t format arguments))
 
-(defun main (&optional args)
+(defun main (&rest args)
   (with-open-stream
       (gpg (sb-ext:process-output
             (sb-ext:run-program "gpg" (list* "--batch" "--no-tty"
@@ -221,7 +221,7 @@
                      (echo "~%")))))))))
 
 #-interactive
-(handler-case (main (rest sb-ext:*posix-argv*))
+(handler-case (apply #'main (rest sb-ext:*posix-argv*))
   (sb-int:simple-stream-error ()
     nil)
   (sb-sys:interactive-interrupt ()
