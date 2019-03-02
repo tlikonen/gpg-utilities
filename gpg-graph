@@ -166,7 +166,7 @@ digraph \"GnuPG key graph\" {
         :if user-id :do
           (format t "  \"~A\"~%    [label=\"~A\\l~?\"];~%"
                   (fingerprint key) user-id
-                  (if (>= (length user-id) 60)
+                  (if (>= (length user-id) 55)
                       "~{~A~^ ~}\\l"
                       "~{~A ~A ~A ~A ~A~^ ...\\l... ~}\\r")
                   (list (split-fingerprint (fingerprint key))))
