@@ -174,13 +174,12 @@ digraph \"GnuPG key graph\" {
 
           (loop :for cert :in (list-of-certificates-from key)
                 :if (user-id cert) :do
-                  (cond
-                    ((certificates-for-p key cert)
-                     (format t "    \"~A\" -> \"~A\" [dir=both];~%"
-                             (fingerprint cert) (fingerprint key))
-                     (remove-certificates-from cert key))
-                    (t (format t "    \"~A\" -> \"~A\" [dir=forward];~%"
-                               (fingerprint cert) (fingerprint key))))))
+                  (format t "    \"~A\" -> \"~A\" [dir=~A];~%"
+                          (fingerprint cert) (fingerprint key)
+                          (if (certificates-for-p key cert)
+                              (progn (remove-certificates-from cert key)
+                                     "both")
+                              "forward"))))
 
   (format t "}~%"))
 
