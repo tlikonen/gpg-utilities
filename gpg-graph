@@ -101,14 +101,9 @@
                 now)))
           (t))))
 
-(defun format-fingerprint (fingerprint)
-  (with-output-to-string (out)
-    (loop :for char :across fingerprint
-          :for i :upfrom 1
-          :do (princ char out)
-              (when (and (zerop (rem i 4))
-                         (not (= i (length fingerprint))))
-                (princ #\Space out)))))
+(defun split-fingerprint (fingerprint)
+  (loop :for i :from 4 :upto (length fingerprint) :by 4
+        :collect (subseq fingerprint (- i 4) i)))
 
 (defun main (&optional args)
   (clrhash *keys*)
@@ -169,9 +164,13 @@ digraph \"GnuPG key graph\" {
   (loop :for key :being :each :hash-value :in *keys*
         :for user-id := (user-id key)
         :if user-id :do
-          (format t "  \"~A\"~%    [label=\"~A\\n~A\"];~%"
+          (format t "  \"~A\"~%    [label=\"~A\\l~A\"];~%"
                   (fingerprint key) user-id
-                  (format-fingerprint (fingerprint key)))
+                  (if (>= (length user-id) 60)
+                      (format nil "~{~A~^ ~}\\l"
+                              (split-fingerprint (fingerprint key)))
+                      (format nil "~{~A ~A ~A ~A ~A~^ ...\\l... ~}\\r"
+                              (split-fingerprint (fingerprint key)))))
 
           (loop :for cert :in (list-of-certificates-from key)
                 :if (user-id cert) :do
