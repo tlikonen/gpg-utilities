@@ -105,7 +105,7 @@
   (loop :for i :from 4 :upto (length fingerprint) :by 4
         :collect (subseq fingerprint (- i 4) i)))
 
-(defun main (&optional args)
+(defun main (&rest args)
   (clrhash *keys*)
 
   (with-open-stream
@@ -183,7 +183,7 @@ digraph \"GnuPG key graph\" {
   (format t "}~%"))
 
 #-interactive
-(handler-case (main (rest sb-ext:*posix-argv*))
+(handler-case (apply #'main (rest sb-ext:*posix-argv*))
   (sb-int:simple-stream-error ()
     nil)
   (sb-sys:interactive-interrupt ()
