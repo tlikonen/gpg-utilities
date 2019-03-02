@@ -81,7 +81,7 @@
   (setf string (string-replace string "\\x3a" ":"))
   (escape-characters string "\\" #\\))
 
-(defun cert-not-expired-p (expire)
+(defun date-not-expired-p (expire)
   (let ((now (get-universal-time)))
     (cond ((string= expire ""))
           ((every #'digit-char-p expire)
@@ -156,7 +156,7 @@
                     (plusp (length (nth 1 fields)))
                     (char= #\! (aref (nth 1 fields) 0))
                     (string/= key-id (nth 4 fields))
-                    (cert-not-expired-p (nth 6 fields)))
+                    (date-not-expired-p (nth 6 fields)))
                (let ((cert-id (nth 4 fields)))
                  (add-certificates-from key-id cert-id)
                  (add-certificates-for cert-id key-id))))))
