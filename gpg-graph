@@ -20,6 +20,7 @@
 
 (defclass key ()
   ((user-id :accessor user-id :initform nil)
+   (key-id :accessor key-id :initform nil)
    (fingerprint :accessor fingerprint :initform nil)
    (certificates-from :accessor certificates-from :initform nil)
    (cerfificates-for :accessor certificates-for :initform nil)))
@@ -28,22 +29,20 @@
   (or (gethash key-id *keys*)
       (setf (gethash key-id *keys*) (make-instance 'key))))
 
-(defun certificates-for-p (key-id cert-id)
-  (member cert-id (certificates-for (get-create-key key-id)) :test #'equal))
+(defun certificates-for-p (key cert)
+  (member cert (certificates-for key)))
 
-(defun list-of-certificates-from (key-id)
-  (copy-list (certificates-from (get-create-key key-id))))
+(defun list-of-certificates-from (key)
+  (copy-list (certificates-from key)))
 
-(defun add-certificates-from (key-id cert-id)
-  (pushnew cert-id (certificates-from (get-create-key key-id)) :test #'equal))
+(defun add-certificates-from (key cert)
+  (pushnew cert (certificates-from key)))
 
-(defun add-certificates-for (key-id cert-id)
-  (pushnew cert-id (certificates-for (get-create-key key-id)) :test #'equal))
+(defun add-certificates-for (key cert)
+  (pushnew cert (certificates-for key)))
 
-(defun remove-certificates-from (key-id cert-id)
-  (let ((key (get-create-key key-id)))
-    (setf (certificates-from key)
-          (remove cert-id (certificates-from key) :test #'equal))))
+(defun remove-certificates-from (key cert)
+  (setf (certificates-from key) (remove cert (certificates-from key))))
 
 (defun split-colon-string (string)
   (loop :with items
@@ -135,7 +134,8 @@
               ((string= "pub" (nth 0 fields))
                (setf expect '(:fpr))
                (setf key-id (nth 4 fields))
-               (setf key (get-create-key key-id)))
+               (setf key (get-create-key key-id))
+               (setf (key-id key) key-id))
 
               ((string= "sub" (nth 0 fields))
                (setf expect nil))
@@ -157,9 +157,9 @@
                     (char= #\! (aref (nth 1 fields) 0))
                     (string/= key-id (nth 4 fields))
                     (date-not-expired-p (nth 6 fields)))
-               (let ((cert-id (nth 4 fields)))
-                 (add-certificates-from key-id cert-id)
-                 (add-certificates-for cert-id key-id))))))
+               (let ((cert (get-create-key (nth 4 fields))))
+                 (add-certificates-from key cert)
+                 (add-certificates-for cert key))))))
 
   (format t "~
 digraph \"GnuPG key graph\" {
@@ -175,13 +175,14 @@ digraph \"GnuPG key graph\" {
           (format t "  \"~A\" [label=\"~A\\n~A\"];~%"
                   key-id user-id (format-fingerprint (fingerprint key)))
 
-          (loop :for cert-id :in (list-of-certificates-from key-id)
-                :if (user-id (gethash cert-id *keys*)) :do
+          (loop :for cert :in (list-of-certificates-from key)
+                :for cert-id := (key-id cert)
+                :if (user-id cert) :do
                   (cond
-                    ((certificates-for-p key-id cert-id)
+                    ((certificates-for-p key cert)
                      (format t "    \"~A\" -> \"~A\" [dir=both];~%"
                              cert-id key-id)
-                     (remove-certificates-from cert-id key-id))
+                     (remove-certificates-from cert key))
                     (t (format t "    \"~A\" -> \"~A\" [dir=forward];~%"
                                cert-id key-id)))))
 
