@@ -58,7 +58,7 @@ Usage: `gpg-tofu [key1 ...]`
 Installation
 ------------
 
-The programs are directly executable files. The are written in the
+The programs are directly executable files. They are written in the
 Common Lisp language and require [Steel Bank Common Lisp][SBCL]
 implementation. For drawing graphs the Graphviz tool is required. Both
 should be available in common GNU/Linux distributions (Debian: `apt
