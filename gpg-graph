@@ -24,15 +24,37 @@
    (certificates-from :accessor certificates-from :initform nil)
    (cerfificates-for :accessor certificates-for :initform nil)))
 
+(defclass certificate ()
+  ((key :accessor key :initarg :key)
+   (date :accessor date :initarg :date)))
+
+(defclass revocation (certificate) nil)
+
 (defun get-create-key (key-id)
   (or (gethash key-id *keys*)
       (setf (gethash key-id *keys*) (make-instance 'key))))
 
-(defun certificates-for-p (key cert)
-  (member cert (certificates-for key)))
+(defun only-latest-certs (certs)
+  ;; Remove old certificates and keep only the latest for each key. If
+  ;; the key's latest certificate is a revocation certificate remove
+  ;; that too.
+  (delete-if (lambda (item)
+               (typep item 'revocation))
+             (delete-duplicates
+              (sort (copy-list certs)
+                    (lambda (cert1 cert2)
+                      (cond ((string< (fingerprint (key cert1))
+                                      (fingerprint (key cert2))))
+                            ((and (string= (fingerprint (key cert1))
+                                           (fingerprint (key cert2)))
+                                  (> (date cert1) (date cert2)))))))
+              :from-end t :key #'key)))
+
+(defun certificates-for-p (key cert-key)
+  (member cert-key (only-latest-certs (certificates-for key)) :key #'key))
 
 (defun list-of-certificates-from (key)
-  (copy-list (certificates-from key)))
+  (mapcar #'key (only-latest-certs (certificates-from key))))
 
 (defun add-certificates-from (key cert)
   (pushnew cert (certificates-from key)))
@@ -40,8 +62,9 @@
 (defun add-certificates-for (key cert)
   (pushnew cert (certificates-for key)))
 
-(defun remove-certificates-from (key cert)
-  (setf (certificates-from key) (remove cert (certificates-from key))))
+(defun remove-certificates-from (key cert-key)
+  (setf (certificates-from key)
+        (remove cert-key (certificates-from key) :key #'key)))
 
 (defun split-colon-string (string)
   (loop :with items
@@ -78,6 +101,25 @@
   ;; This should actually decode C language string.
   (setf string (string-replace string "\\x3a" ":"))
   (escape-characters string "\\" #\\))
+
+(defun parse-time-stamp (time-stamp)
+  (cond ((or (string= time-stamp "")
+             (string= time-stamp "0"))
+         nil)
+        ((every #'digit-char-p time-stamp)
+         (+ (parse-integer time-stamp)
+            2208988800))                ;1970-01-01T00:00:00Z
+        ((and (>= (length time-stamp) 15)
+              (char= #\T (aref time-stamp 8))
+              (every #'digit-char-p (subseq time-stamp 0 8))
+              (every #'digit-char-p (subseq time-stamp 9 15)))
+         (let ((year (parse-integer (subseq time-stamp 0 4)))
+               (month (parse-integer (subseq time-stamp 4 6)))
+               (day (parse-integer (subseq time-stamp 6 8)))
+               (hour (parse-integer (subseq time-stamp 9 11)))
+               (min (parse-integer (subseq time-stamp 11 13)))
+               (sec (parse-integer (subseq time-stamp 13 15))))
+           (encode-universal-time sec min hour day month year 0)))))
 
 (defun date-not-expired-p (expire)
   (let ((now (get-universal-time)))
@@ -145,14 +187,26 @@
                (setf (user-id key) (prepare-user-id (nth 9 fields))))
 
               ((and (member :sig expect)
-                    (string= "sig" (nth 0 fields))
+                    (or (string= "sig" (nth 0 fields))
+                        (string= "rev" (nth 0 fields)))
                     (plusp (length (nth 1 fields)))
                     (char= #\! (aref (nth 1 fields) 0))
                     (string/= key-id (nth 4 fields))
                     (date-not-expired-p (nth 6 fields)))
-               (let ((cert (get-create-key (nth 4 fields))))
-                 (add-certificates-from key cert)
-                 (add-certificates-for cert key))))))
+               (let ((cert-key (get-create-key (nth 4 fields)))
+                     (cert-type (if (string= "sig" (nth 0 fields))
+                                    'certificate
+                                    'revocation)))
+                 (add-certificates-from
+                  key (make-instance
+                       cert-type
+                       :key cert-key
+                       :date (parse-time-stamp (nth 5 fields))))
+                 (add-certificates-for
+                  cert-key (make-instance
+                            cert-type
+                            :key key
+                            :date (parse-time-stamp (nth 5 fields)))))))))
 
   (format t "~
 digraph \"GnuPG key graph\" {
