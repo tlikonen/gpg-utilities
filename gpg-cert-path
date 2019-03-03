@@ -17,6 +17,7 @@
 (in-package #:gpg-cert-path)
 
 (defvar *keys* (make-hash-table :test #'equal))
+(defvar *max-steps* 5)
 
 (defclass key ()
   ((user-id :accessor user-id :initform nil)
@@ -94,7 +95,7 @@
 
 (defun shortest-paths (from to)
   (let ((paths nil)
-        (max-steps 5))
+        (max-steps *max-steps*))
     (labels ((route (place path steps)
                (push place path)
                (cond ((> steps max-steps))
@@ -185,6 +186,12 @@
   (let ((paths (shortest-paths key1 key2))
         (keys nil)
         (edges nil))
+
+    (unless paths
+      (format *error-output* "Couldn't find a path from KEY1 to KEY2 ~
+                within maximum steps (~D).~%"
+              *max-steps*)
+      (force-output *error-output*))
 
     (loop :for path :in paths
           :do (loop :for (key . rest) :on path
