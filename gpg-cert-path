@@ -92,7 +92,7 @@
   (loop :for i :from 4 :upto (length fingerprint) :by 4
         :collect (subseq fingerprint (- i 4) i)))
 
-(defun shortest-path (from to)
+(defun shortest-paths (from to)
   (let ((paths nil)
         (max-steps 5))
     (labels ((route (place path steps)
@@ -182,7 +182,7 @@
         ((not (typep key2 'key))
          (error "The TO key not found in the keyring.")))
   
-  (let ((paths (shortest-path key1 key2))
+  (let ((paths (shortest-paths key1 key2))
         (keys nil)
         (edges nil))
 
