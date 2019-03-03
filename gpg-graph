@@ -21,6 +21,7 @@
 (defclass key ()
   ((user-id :accessor user-id :initform nil)
    (fingerprint :accessor fingerprint :initform nil)
+   (key-ok :accessor key-ok :initform t)
    (certificates-from :accessor certificates-from :initform nil)
    (cerfificates-for :accessor certificates-for :initform nil)))
 
@@ -170,7 +171,10 @@
               ((string= "pub" (nth 0 fields))
                (setf expect '(:fpr))
                (setf key-id (nth 4 fields))
-               (setf key (get-create-key key-id)))
+               (setf key (get-create-key key-id))
+               (when (and (plusp (length (nth 1 fields)))
+                          (find (aref (nth 1 fields) 0) "re"))
+                 (setf (key-ok key) nil)))
 
               ((string= "sub" (nth 0 fields))
                (setf expect nil))
@@ -218,12 +222,13 @@ digraph \"GnuPG key graph\" {
   (loop :for key :being :each :hash-value :in *keys*
         :for user-id := (user-id key)
         :if user-id :do
-          (format t "  \"~A\"~%    [label=\"~A\\l~?\"];~%"
+          (format t "  \"~A\"~%    [label=\"~A\\l~?\"~A];~%"
                   (fingerprint key) user-id
                   (if (>= (length user-id) 55)
                       "~{~A~^ ~}\\l"
                       "~{~A ~A ~A ~A ~A~^ ...\\l... ~}\\r")
-                  (list (split-fingerprint (fingerprint key))))
+                  (list (split-fingerprint (fingerprint key)))
+                  (if (key-ok key) "" ", fontcolor=\"#aaaaaa\""))
 
           (loop :for cert :in (list-of-certificates-from key)
                 :if (user-id cert) :do
