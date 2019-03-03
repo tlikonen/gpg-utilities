@@ -1,0 +1,228 @@
+#!/usr/bin/sbcl --script
+;; -*- mode:lisp -*-
+;;
+;; gpg-cert-path - Find the shortest certificate path(s) between two keys
+;;
+;; Author: Teemu Likonen <tlikonen@iki.fi>
+;;
+;; No restrictions for use: this program is placed in the public domain.
+;;
+;; This program is distributed in the hope that it will be useful, but
+;; WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+(defpackage #:gpg-cert-path
+  (:use #:cl))
+
+(in-package #:gpg-cert-path)
+
+(defvar *keys* (make-hash-table :test #'equal))
+
+(defclass key ()
+  ((user-id :accessor user-id :initform nil)
+   (fingerprint :accessor fingerprint :initform nil)
+   (cerfificates-for :accessor certificates-for :initform nil)))
+
+(defun get-create-key (key-id)
+  (or (gethash key-id *keys*)
+      (setf (gethash key-id *keys*) (make-instance 'key))))
+
+(defun add-certificates-for (key cert)
+  (pushnew cert (certificates-for key)))
+
+(defun split-colon-string (string)
+  (loop :with items
+        :with start := 0
+        :for end := (position #\: string :start start)
+        :do (push (subseq string start end) items)
+            (if end
+                (setf start (1+ end))
+                (loop-finish))
+        :finally (return (nreverse items))))
+
+(defun string-replace (string search replace)
+  (assert (plusp (length search)) (search)
+          "Can't search for zero length SEARCH string.")
+  (with-output-to-string (out)
+    (loop :with length-search := (length search)
+          :for pos := 0 :then (+ find length-search)
+          :for find := (search search string :start2 pos)
+          :if find :do
+            (princ (subseq string pos find) out)
+            (princ replace out)
+          :else :do
+            (princ (subseq string pos) out)
+            (loop-finish))))
+
+(defun escape-characters (string esc-chars esc)
+  (with-output-to-string (out)
+    (loop :for char :across string
+          :do (when (find char esc-chars)
+                (princ esc out))
+              (princ char out))))
+
+(defun prepare-user-id (string)
+  ;; This should actually decode C language string.
+  (setf string (string-replace string "\\x3a" ":"))
+  (escape-characters string "\\" #\\))
+
+(defun date-not-expired-p (expire)
+  (let ((now (get-universal-time)))
+    (cond ((string= expire ""))
+          ((every #'digit-char-p expire)
+           (> (+ (parse-integer expire)
+                 2208988800)            ;1970-01-01T00:00:00Z
+              now))
+          ((and (>= (length expire) 15)
+                (char= #\T (aref expire 8))
+                (every #'digit-char-p (subseq expire 0 8))
+                (every #'digit-char-p (subseq expire 9 15)))
+           (let ((year (parse-integer (subseq expire 0 4)))
+                 (month (parse-integer (subseq expire 4 6)))
+                 (day (parse-integer (subseq expire 6 8)))
+                 (hour (parse-integer (subseq expire 9 11)))
+                 (min (parse-integer (subseq expire 11 13)))
+                 (sec (parse-integer (subseq expire 13 15))))
+             (> (encode-universal-time sec min hour day month
+                                       year 0)
+                now)))
+          (t))))
+
+(defun split-fingerprint (fingerprint)
+  (loop :for i :from 4 :upto (length fingerprint) :by 4
+        :collect (subseq fingerprint (- i 4) i)))
+
+(defun shortest-path (from to)
+  (let ((paths nil)
+        (max-steps 5))
+    (labels ((route (place path steps)
+               (push place path)
+               (cond ((> steps max-steps))
+                     ((eql place to)
+                      (setf max-steps (min max-steps steps))
+                      (push (cons steps (reverse path)) paths))
+                     (t (loop :for next :in (certificates-for place)
+                              :unless (member next path)
+                                :do (route next path (1+ steps)))))))
+      (route from nil 0)
+      (when paths
+        (mapcar #'rest (delete (reduce #'min paths :key #'first)
+                               paths :key #'first :test-not #'=))))))
+
+(defun main (key1 key2)
+  (unless (and (stringp key1)
+               (stringp key2)
+               (= 40 (length key1) (length key2))
+               (every (lambda (char)
+                        (or (digit-char-p char)
+                            (find (char-upcase char) "ABCDEF")))
+                      key1)
+               (every (lambda (char)
+                        (or (digit-char-p char)
+                            (find (char-upcase char) "ABCDEF")))
+                      key2))
+    (error "Give two 40-character key fingerprints as arguments."))
+
+  (setf key1 (string-upcase key1)
+        key2 (string-upcase key2))
+  
+  (clrhash *keys*)
+
+  (with-open-stream
+      (gpg (sb-ext:process-output
+            (sb-ext:run-program "gpg" (list "--batch" "--no-tty"
+                                            "--with-colons"
+                                            "--with-fingerprint"
+                                            "--check-signatures")
+                                :search t :wait nil
+                                :output :stream
+                                :error *error-output*)))
+
+    (loop :with key-id :with key :with expect
+          :for line := (read-line gpg nil)
+          :for fields := (if line (split-colon-string line))
+
+          :while line :do
+            (cond
+              ((string= "pub" (nth 0 fields))
+               (setf expect '(:fpr))
+               (setf key-id (nth 4 fields))
+               (setf key (get-create-key key-id)))
+
+              ((string= "sub" (nth 0 fields))
+               (setf expect nil))
+
+              ((and (member :fpr expect)
+                    (string= "fpr" (nth 0 fields)))
+               (setf expect '(:uid))
+               (setf (fingerprint key) (nth 9 fields))
+               (cond ((and (stringp key1)
+                           (string= key1 (fingerprint key)))
+                      (setf key1 key))
+                     ((and (stringp key2)
+                           (string= key2 (fingerprint key)))
+                      (setf key2 key))))
+
+              ((and (member :uid expect)
+                    (string= "uid" (nth 0 fields))
+                    (not (user-id key)))
+               (setf expect '(:sig))
+               (setf (user-id key) (prepare-user-id (nth 9 fields))))
+
+              ((and (member :sig expect)
+                    (string= "sig" (nth 0 fields))
+                    (plusp (length (nth 1 fields)))
+                    (char= #\! (aref (nth 1 fields) 0))
+                    (string/= key-id (nth 4 fields))
+                    (date-not-expired-p (nth 6 fields)))
+               (add-certificates-for (get-create-key (nth 4 fields)) key)))))
+
+  (cond ((not (typep key1 'key))
+         (error "The FROM key not found in the keyring."))
+        ((not (typep key2 'key))
+         (error "The TO key not found in the keyring.")))
+  
+  (let ((paths (shortest-path key1 key2))
+        (keys nil)
+        (edges nil))
+
+    (loop :for path :in paths
+          :do (loop :for (key . rest) :on path
+                    :do (push key keys)
+                        (when (first rest)
+                          (push (cons key (first rest)) edges)))
+              
+          :finally
+             (setf keys (delete-duplicates (list* key1 key2 keys))
+                   edges (delete-duplicates edges :test #'equal)))
+
+    (format t "~
+digraph \"GnuPG certificate path\" {
+  overlap=scale;
+  splines=true;
+  node [shape=box];
+")
+
+    (loop :for key :in keys
+          :do (format t "  \"~A\"~%    [label=\"~A\\l~?\"];~%"
+                      (fingerprint key) (user-id key)
+                      (if (>= (length (user-id key)) 55)
+                          "~{~A~^ ~}\\l"
+                          "~{~A ~A ~A ~A ~A~^ ...\\l... ~}\\r")
+                      (list (split-fingerprint (fingerprint key)))))
+
+    (loop :for (key1 . key2) :in edges
+          :do (format t "  \"~A\" -> \"~A\";~%"
+                      (fingerprint key1) (fingerprint key2)))
+
+    (format t "}~%")))
+
+#-interactive
+(handler-case (main (nth 1 sb-ext:*posix-argv*) 
+                    (nth 2 sb-ext:*posix-argv*))
+  (sb-int:simple-stream-error ()
+    nil)
+  (sb-sys:interactive-interrupt ()
+    (terpri))
+  (serious-condition (c)
+    (format *error-output* "~&~A~%" c)))
