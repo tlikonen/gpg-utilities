@@ -168,7 +168,7 @@
 
   (setf key1 (string-upcase key1)
         key2 (string-upcase key2))
-  
+
   (clrhash *keys*)
 
   (with-open-stream
@@ -251,7 +251,7 @@
                     :do (push key keys)
                         (when (first rest)
                           (push (cons key (first rest)) edges)))
-              
+
           :finally
              (setf keys (delete-duplicates (list* key1 key2 keys))
                    edges (delete-duplicates edges :test #'equal)))
@@ -278,7 +278,7 @@ digraph \"GnuPG certificate path\" {
     (format t "}~%")))
 
 #-interactive
-(handler-case (main (nth 1 sb-ext:*posix-argv*) 
+(handler-case (main (nth 1 sb-ext:*posix-argv*)
                     (nth 2 sb-ext:*posix-argv*))
   (sb-int:simple-stream-error ()
     nil)
