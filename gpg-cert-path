@@ -24,9 +24,31 @@
    (fingerprint :accessor fingerprint :initform nil)
    (cerfificates-for :accessor certificates-for :initform nil)))
 
+(defclass certificate ()
+  ((key :accessor key :initarg :key)
+   (date :accessor date :initarg :date)))
+
+(defclass revocation (certificate) nil)
+
 (defun get-create-key (key-id)
   (or (gethash key-id *keys*)
       (setf (gethash key-id *keys*) (make-instance 'key))))
+
+(defun only-latest-certs (certs)
+  ;; Remove old certificates and keep only the latest for each key. If
+  ;; the key's latest certificate is a revocation certificate remove
+  ;; that too.
+  (delete-if (lambda (item)
+               (typep item 'revocation))
+             (delete-duplicates
+              (sort (copy-list certs)
+                    (lambda (cert1 cert2)
+                      (cond ((string< (fingerprint (key cert1))
+                                      (fingerprint (key cert2))))
+                            ((and (string= (fingerprint (key cert1))
+                                           (fingerprint (key cert2)))
+                                  (> (date cert1) (date cert2)))))))
+              :from-end t :key #'key)))
 
 (defun add-certificates-for (key cert)
   (pushnew cert (certificates-for key)))
@@ -67,6 +89,25 @@
   (setf string (string-replace string "\\x3a" ":"))
   (escape-characters string "\\" #\\))
 
+(defun parse-time-stamp (time-stamp)
+  (cond ((or (string= time-stamp "")
+             (string= time-stamp "0"))
+         nil)
+        ((every #'digit-char-p time-stamp)
+         (+ (parse-integer time-stamp)
+            2208988800))                ;1970-01-01T00:00:00Z
+        ((and (>= (length time-stamp) 15)
+              (char= #\T (aref time-stamp 8))
+              (every #'digit-char-p (subseq time-stamp 0 8))
+              (every #'digit-char-p (subseq time-stamp 9 15)))
+         (let ((year (parse-integer (subseq time-stamp 0 4)))
+               (month (parse-integer (subseq time-stamp 4 6)))
+               (day (parse-integer (subseq time-stamp 6 8)))
+               (hour (parse-integer (subseq time-stamp 9 11)))
+               (min (parse-integer (subseq time-stamp 11 13)))
+               (sec (parse-integer (subseq time-stamp 13 15))))
+           (encode-universal-time sec min hour day month year 0)))))
+
 (defun date-not-expired-p (expire)
   (let ((now (get-universal-time)))
     (cond ((string= expire ""))
@@ -102,7 +143,8 @@
                      ((eql place to)
                       (setf max-steps (min max-steps steps))
                       (push (cons steps (reverse path)) paths))
-                     (t (loop :for next :in (certificates-for place)
+                     (t (loop :for next
+                                :in (mapcar #'key (certificates-for place))
                               :unless (member next path)
                                 :do (route next path (1+ steps)))))))
       (route from nil 0)
@@ -171,18 +213,29 @@
                (setf (user-id key) (prepare-user-id (nth 9 fields))))
 
               ((and (member :sig expect)
-                    (string= "sig" (nth 0 fields))
+                    (or (string= "sig" (nth 0 fields))
+                        (string= "rev" (nth 0 fields)))
                     (plusp (length (nth 1 fields)))
                     (char= #\! (aref (nth 1 fields) 0))
                     (string/= key-id (nth 4 fields))
                     (date-not-expired-p (nth 6 fields)))
-               (add-certificates-for (get-create-key (nth 4 fields)) key)))))
+               (add-certificates-for
+                (get-create-key (nth 4 fields))
+                (make-instance (if (string= "sig" (nth 0 fields))
+                                   'certificate
+                                   'revocation)
+                               :key key
+                               :date (parse-time-stamp (nth 5 fields))))))))
 
   (cond ((not (typep key1 'key))
          (error "The KEY1 not found in the keyring."))
         ((not (typep key2 'key))
          (error "The KEY2 not found in the keyring.")))
-  
+
+  (loop :for key :being :each :hash-value :in *keys*
+        :do (setf (certificates-for key)
+                  (only-latest-certs (certificates-for key))))
+
   (let ((paths (shortest-paths key1 key2))
         (keys nil)
         (edges nil))
