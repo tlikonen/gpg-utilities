@@ -22,6 +22,7 @@
 (defclass key ()
   ((user-id :accessor user-id :initform nil)
    (fingerprint :accessor fingerprint :initform nil)
+   (key-ok :accessor key-ok :initform t)
    (cerfificates-for :accessor certificates-for :initform nil)))
 
 (defclass certificate ()
@@ -143,6 +144,8 @@
                      ((eql place to)
                       (setf max-steps (min max-steps steps))
                       (push (cons steps (reverse path)) paths))
+                     ((and (not (eql place from))
+                           (not (key-ok place))))
                      (t (loop :for next
                                 :in (mapcar #'key (certificates-for place))
                               :unless (member next path)
@@ -190,7 +193,10 @@
               ((string= "pub" (nth 0 fields))
                (setf expect '(:fpr))
                (setf key-id (nth 4 fields))
-               (setf key (get-create-key key-id)))
+               (setf key (get-create-key key-id))
+               (when (and (plusp (length (nth 1 fields)))
+                          (find (aref (nth 1 fields) 0) "re"))
+                 (setf (key-ok key) nil)))
 
               ((string= "sub" (nth 0 fields))
                (setf expect nil))
@@ -264,12 +270,13 @@ digraph \"GnuPG certificate path\" {
 ")
 
     (loop :for key :in keys
-          :do (format t "  \"~A\"~%    [label=\"~A\\l~?\"];~%"
+          :do (format t "  \"~A\"~%    [label=\"~A\\l~?\"~A];~%"
                       (fingerprint key) (user-id key)
                       (if (>= (length (user-id key)) 55)
                           "~{~A~^ ~}\\l"
                           "~{~A ~A ~A ~A ~A~^ ...\\l... ~}\\r")
-                      (list (split-fingerprint (fingerprint key)))))
+                      (list (split-fingerprint (fingerprint key)))
+                      (if (key-ok key) "" ", fontcolor=\"#aaaaaa\"")))
 
     (loop :for (key1 . key2) :in edges
           :do (format t "  \"~A\" -> \"~A\";~%"
