@@ -1,34 +1,17 @@
-GPG Graph
-=========
+GPG Utilities
+=============
 
-**Draw web of trust graphs of a GnuPG keyring**
+**Utilities for GnuPG security tool**
 
 
-Introduction
-------------
+Programs
+--------
+
+### GPG Graph
 
 `gpg-graph` is a command-line tool which inputs data from `gpg` ([GnuPG][])
 security tool and outputs graph data in [Graphviz][] format. Graphviz
 can then be used to draw web of trust graphs from GnuPG public keys.
-
-`gpg-cert-path` is a tool for finding the shortest certificate path(s)
-between two keys. The output is data for [Graphviz][]. The maximum steps
-between keys is limited to 5 which is [GnuPG][]'s default
-`--max-cert-depth` option. Long distances between keys would take very
-long time to find in large keyrings.
-
-The programs are written in the Common Lisp language and require [Steel
-Bank Common Lisp][SBCL] implementation. For drawing graphs the Graphviz
-tool is required. Both should be available in common GNU/Linux
-distributions (Debian: `apt install sbcl graphviz`).
-
-[GnuPG]:    https://gnupg.org/
-[Graphviz]: https://graphviz.org/
-[SBCL]:     http://sbcl.org/
-
-
-Examples
---------
 
 Usage: `gpg-graph [key1 ...]`
 
@@ -36,10 +19,52 @@ Usage: `gpg-graph [key1 ...]`
     gpg-graph kernel.org | neato -Tpng >wot-neato.png
     gpg-graph kernel.org | sfdp -Tpng >wot-sfdp.png
 
+
+### GPG Cert Path
+
+`gpg-cert-path` is a tool for finding the shortest certificate path(s)
+between two keys. The output is data for [Graphviz][]. The maximum steps
+between keys is limited to 5 which is [GnuPG][]'s default
+`--max-cert-depth` option. Long distances between keys would take very
+long time to find in large keyrings.
+
 Usage: `gpg-cert-path <from-key> <to-key>`
 
     gpg-cert-path 80615870F5BAD690333686D0F2AD85AC1E42B367 \
-        ABAF11C65A2970B130ABE3C479BE3E4300411886 | dot -Tpng path.png
+        ABAF11C65A2970B130ABE3C479BE3E4300411886 | dot -Tpng >path.png
+
+
+### GPG Tofu
+
+`gpg-tofu` is a tool which inputs public key data from `gpg` ([GnuPG][])
+security tool and outputs "trust on first use" (TOFU) statistics about
+the keys.
+
+Usage: `gpg-tofu [key1 ...]`
+
+    $ gpg-tofu tlikonen@iki.fi
+
+    pub 4E1055DC84E9DFF613D78557719D69D324539450
+    uid [ultimate] Teemu Likonen <tlikonen@iki.fi>
+        TOFU validity: (4/4) a lot of history for trust, TOFU policy: good
+        430 signatures in 1 year 254 days, first: 2017-06-09 11:28:16Z, last: 2019-02-18 14:18:37Z
+        404 encryptions in 1 year 244 days, first: 2017-06-15 14:41:30Z, last: 2019-02-14 19:25:41Z
+    [...]
+
+[GnuPG]:    https://gnupg.org/
+[Graphviz]: https://graphviz.org/
+
+
+Installation
+------------
+
+The programs are directly executable files. The are written in the
+Common Lisp language and require [Steel Bank Common Lisp][SBCL]
+implementation. For drawing graphs the Graphviz tool is required. Both
+should be available in common GNU/Linux distributions (Debian: `apt
+install sbcl graphviz`).
+
+[SBCL]:     http://sbcl.org/
 
 
 Author and License
