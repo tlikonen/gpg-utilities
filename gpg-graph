@@ -52,10 +52,10 @@
               :from-end t :key #'key)))
 
 (defun certificates-for-p (key cert-key)
-  (member cert-key (only-latest-certs (certificates-for key)) :key #'key))
+  (member cert-key (certificates-for key) :key #'key))
 
 (defun list-of-certificates-from (key)
-  (mapcar #'key (only-latest-certs (certificates-from key))))
+  (mapcar #'key (certificates-from key)))
 
 (defun add-certificates-from (key cert)
   (pushnew cert (certificates-from key)))
@@ -211,6 +211,12 @@
                             cert-type
                             :key key
                             :date (parse-time-stamp (nth 5 fields)))))))))
+
+  (loop :for key :being :each :hash-value :in *keys*
+        :do (setf (certificates-for key)
+                  (only-latest-certs (certificates-for key)))
+            (setf (certificates-from key)
+                  (only-latest-certs (certificates-from key))))
 
   (format t "~
 digraph \"GnuPG key graph\" {
