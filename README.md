@@ -7,6 +7,24 @@ GPG Utilities
 Programs
 --------
 
+### GPG Tofu
+
+`gpg-tofu` is a tool which inputs public key data from `gpg` ([GnuPG][])
+security tool and outputs "trust on first use" (TOFU) statistics about
+the keys.
+
+Usage: `gpg-tofu [key1 ...]`
+
+    $ gpg-tofu tlikonen@iki.fi
+
+    pub 4E1055DC84E9DFF613D78557719D69D324539450
+    uid [ultimate] Teemu Likonen <tlikonen@iki.fi>
+        TOFU validity: (4/4) a lot of history for trust, TOFU policy: good
+        430 signatures in 1 year 254 days, first: 2017-06-09 11:28:16Z, last: 2019-02-18 14:18:37Z
+        404 encryptions in 1 year 244 days, first: 2017-06-15 14:41:30Z, last: 2019-02-14 19:25:41Z
+    [...]
+
+
 ### GPG Graph
 
 `gpg-graph` is a command-line tool which inputs data from `gpg` ([GnuPG][])
@@ -32,24 +50,6 @@ Usage: `gpg-cert-path <from-key> <to-key>`
 
     gpg-cert-path 80615870F5BAD690333686D0F2AD85AC1E42B367 \
         ABAF11C65A2970B130ABE3C479BE3E4300411886 | dot -Tpng >path.png
-
-
-### GPG Tofu
-
-`gpg-tofu` is a tool which inputs public key data from `gpg` ([GnuPG][])
-security tool and outputs "trust on first use" (TOFU) statistics about
-the keys.
-
-Usage: `gpg-tofu [key1 ...]`
-
-    $ gpg-tofu tlikonen@iki.fi
-
-    pub 4E1055DC84E9DFF613D78557719D69D324539450
-    uid [ultimate] Teemu Likonen <tlikonen@iki.fi>
-        TOFU validity: (4/4) a lot of history for trust, TOFU policy: good
-        430 signatures in 1 year 254 days, first: 2017-06-09 11:28:16Z, last: 2019-02-18 14:18:37Z
-        404 encryptions in 1 year 244 days, first: 2017-06-15 14:41:30Z, last: 2019-02-14 19:25:41Z
-    [...]
 
 [GnuPG]:    https://gnupg.org/
 [Graphviz]: https://graphviz.org/
