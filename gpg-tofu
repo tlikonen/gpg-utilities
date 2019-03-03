@@ -67,6 +67,7 @@
   (multiple-value-bind (second minute hour date month year
                         day daylight-p zone)
       (decode-universal-time universal-time 0)
+    (declare (ignore day daylight-p zone))
     (format nil "~4,'0D-~2,'0D-~2,'0D ~2,'0D:~2,'0D:~2,'0DZ"
             year month date hour minute second)))
 
