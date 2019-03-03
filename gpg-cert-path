@@ -44,11 +44,11 @@
              (delete-duplicates
               (sort (copy-list certs)
                     (lambda (cert1 cert2)
-                      (cond ((string< (fingerprint (key cert1))
-                                      (fingerprint (key cert2))))
-                            ((and (string= (fingerprint (key cert1))
-                                           (fingerprint (key cert2)))
-                                  (> (date cert1) (date cert2)))))))
+                      (or (string< (fingerprint (key cert1))
+                                   (fingerprint (key cert2)))
+                          (and (string= (fingerprint (key cert1))
+                                        (fingerprint (key cert2)))
+                               (> (date cert1) (date cert2))))))
               :from-end t :key #'key)))
 
 (defun add-certificates-for (key cert)
