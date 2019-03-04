@@ -33,11 +33,11 @@ install:
 	install -d -m 755 $(bindir)
 	install -d -m 755 $(libdir)
 	install -m 755 gpg-utilities $(libdir)
-	( cd $(bindir); \
+	cd $(bindir) && { \
 		ln -fs $(libdir)/gpg-utilities gpg-tofu; \
 		ln -fs $(libdir)/gpg-utilities gpg-graph; \
 		ln -fs $(libdir)/gpg-utilities gpg-cert-path; \
-		)
+		}
 
 uninstall:
 	rm -f $(bindir)/gpg-tofu
