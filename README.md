@@ -33,9 +33,9 @@ can then be used to draw web of trust graphs from GnuPG public keys.
 
 Usage: `gpg-graph [key1 ...]`
 
-    gpg-graph kernel.org | dot -Tpng >wot-dot.png
-    gpg-graph kernel.org | neato -Tpng >wot-neato.png
-    gpg-graph kernel.org | sfdp -Tpng >wot-sfdp.png
+    $ gpg-graph kernel.org | dot -Tpng >wot-dot.png
+    $ gpg-graph kernel.org | neato -Tpng >wot-neato.png
+    $ gpg-graph kernel.org | sfdp -Tpng >wot-sfdp.png
 
 
 ### GPG Cert Path
@@ -48,7 +48,7 @@ long time to find in large keyrings.
 
 Usage: `gpg-cert-path <from-key> <to-key>`
 
-    gpg-cert-path 80615870F5BAD690333686D0F2AD85AC1E42B367 \
+    $ gpg-cert-path 80615870F5BAD690333686D0F2AD85AC1E42B367 \
         ABAF11C65A2970B130ABE3C479BE3E4300411886 | dot -Tpng >path.png
 
 [GnuPG]:    https://gnupg.org/
@@ -74,8 +74,8 @@ root):
     # make install
 
 The default installation target is `~/bin` for executable files
-(actually symbolic links) and `~/.local` directory for the common
-library file. You can configure different locations with Makefile
+(actually symbolic links) and `~/.local` directory hierarchy for the
+common library file. You can configure different locations with Makefile
 variables and save them to a configuration file for later runs. For
 example:
 
