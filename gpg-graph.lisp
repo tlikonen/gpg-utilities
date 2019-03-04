@@ -78,11 +78,7 @@
                             :key key
                             :date (parse-time-stamp (nth 5 fields)))))))))
 
-  (loop :for key :being :each :hash-value :in *keys*
-        :do (setf (certificates-for key)
-                  (only-latest-certs (certificates-for key)))
-            (setf (certificates-from key)
-                  (only-latest-certs (certificates-from key))))
+  (remove-old-certs)
 
   (format t "~
 digraph \"GnuPG key graph\" {

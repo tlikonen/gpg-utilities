@@ -4,6 +4,7 @@
            #:key-ok #:certificates-from #:certificates-for
            #:certificate #:date #:revocation
            #:get-create-key #:only-latest-certs
+           #:remove-old-certs
            #:certificates-for-p
            #:list-of-certificates-from
            #:add-certificates-from
@@ -54,6 +55,13 @@
                                         (fingerprint (key cert2)))
                                (> (date cert1) (date cert2))))))
               :from-end t :key #'key)))
+
+(defun remove-old-certs ()
+  (loop :for key :being :each :hash-value :in *keys*
+        :do (setf (certificates-for key)
+                  (only-latest-certs (certificates-for key)))
+            (setf (certificates-from key)
+                  (only-latest-certs (certificates-from key)))))
 
 (defun certificates-for-p (key cert-key)
   (member cert-key (certificates-for key) :key #'key))

@@ -120,9 +120,7 @@
         ((not (typep key2 'key))
          (error "The KEY2 not found in the keyring.")))
 
-  (loop :for key :being :each :hash-value :in *keys*
-        :do (setf (certificates-for key)
-                  (only-latest-certs (certificates-for key))))
+  (remove-old-certs)
 
   (let ((paths (shortest-paths key1 key2))
         (keys nil)
