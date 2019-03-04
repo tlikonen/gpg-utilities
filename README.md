@@ -67,20 +67,20 @@ To build the necessary files run this command:
 
     $ make
 
-The command will also save the default configuration to `config.mk`
-file. To install the files in the default locations run this command (as
+To install the files in the default locations run this command (as
 root):
 
     # make install
 
-The default installation target is `~/bin` for executable files
-(actually symbolic links) and `~/.local` directory hierarchy for the
-common library file. You can configure different locations with Makefile
-variables and save them to a configuration file for later runs. For
-example:
+`make` command will also save some configuration variables to
+`config.mk` file. The default installation target is `~/bin` for
+executable files (actually symbolic links) and `~/.local/lib` directory
+for the common library file. You can configure different locations with
+Makefile variables and save them to a configuration file for later runs.
+For example:
 
     $ make clean-all
-    $ make config prefix=/usr/local bindir=/usr/local/bin
+    $ make config bindir=/usr/local/bin libdir=/usr/local/lib
     $ make
     $ sudo make install
 

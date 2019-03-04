@@ -1,6 +1,5 @@
-prefix = $(HOME)/.local
-libdir = $(prefix)/lib
 bindir = $(HOME)/bin
+libdir = $(HOME)/.local/lib
 sbcl = sbcl
 src = gpg-utilities.asd common.lisp \
 	gpg-tofu.lisp gpg-graph.lisp gpg-cert-path.lisp
@@ -22,9 +21,8 @@ config: $(conf)
 
 $(conf):
 	@echo "sbcl = $(sbcl)" > $@
-	@echo "prefix = $(prefix)" >> $@
-	@echo "libdir = $(libdir)" >> $@
 	@echo "bindir = $(bindir)" >> $@
+	@echo "libdir = $(libdir)" >> $@
 	@echo --- $@
 	@cat $@
 	@echo ---
