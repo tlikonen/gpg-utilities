@@ -55,14 +55,38 @@ Usage: `gpg-cert-path <from-key> <to-key>`
 [Graphviz]: https://graphviz.org/
 
 
-Installation
-------------
+How to Build and Install
+------------------------
 
-The programs are directly executable files. They are written in the
-Common Lisp language and require [Steel Bank Common Lisp][SBCL]
-implementation. For drawing graphs the Graphviz tool is required. Both
-should be available in common GNU/Linux distributions (Debian: `apt
-install sbcl graphviz`).
+The programs are written in the Common Lisp language and require [Steel
+Bank Common Lisp][SBCL] implementation. For drawing graphs the Graphviz
+tool is required. Both should be available in common GNU/Linux
+distributions (Debian: `apt install sbcl graphviz`).
+
+To build the necessary files run this command:
+
+    $ make
+
+The command will also save the default configuration to `config.mk`
+file. To install the files in the default locations run this command (as
+root):
+
+    # make install
+
+The default installation target is `~/bin` for executable files
+(actually symbolic links) and `~/.local` directory for the common
+library file. You can configure different locations with Makefile
+variables and save them to a configuration file for later runs. For
+example:
+
+    $ make clean-all
+    $ make config prefix=/usr/local bindir=/usr/local/bin
+    $ make
+    $ sudo make install
+
+To uninstall all files run command `make uninstall` with the same
+configuration as during installation. You can clean build files with
+`make clean` or `make clean-all` (which deletes also the configuration).
 
 [SBCL]:     http://sbcl.org/
 
