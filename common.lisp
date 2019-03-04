@@ -127,26 +127,9 @@
            (encode-universal-time sec min hour day month year 0)))))
 
 (defun date-not-expired-p (expire)
-  (let ((now (get-universal-time)))
-    (cond ((string= expire ""))
-          ((every #'digit-char-p expire)
-           (> (+ (parse-integer expire)
-                 2208988800)            ;1970-01-01T00:00:00Z
-              now))
-          ((and (>= (length expire) 15)
-                (char= #\T (aref expire 8))
-                (every #'digit-char-p (subseq expire 0 8))
-                (every #'digit-char-p (subseq expire 9 15)))
-           (let ((year (parse-integer (subseq expire 0 4)))
-                 (month (parse-integer (subseq expire 4 6)))
-                 (day (parse-integer (subseq expire 6 8)))
-                 (hour (parse-integer (subseq expire 9 11)))
-                 (min (parse-integer (subseq expire 11 13)))
-                 (sec (parse-integer (subseq expire 13 15))))
-             (> (encode-universal-time sec min hour day month
-                                       year 0)
-                now)))
-          (t))))
+  (let ((now (get-universal-time))
+        (date (parse-time-stamp expire)))
+    (if date (> date now) t)))
 
 (defun split-fingerprint (fingerprint)
   (loop :for i :from 4 :upto (length fingerprint) :by 4
