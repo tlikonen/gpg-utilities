@@ -67,10 +67,9 @@ To build the necessary files run this command:
 
     $ make
 
-To install the files in the default locations run this command (as
-root):
+To install the files in the default locations run this command:
 
-    # make install
+    $ make install
 
 `make` command will also save some configuration variables to
 `config.mk` file. The default installation target is `~/bin` for
