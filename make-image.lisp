@@ -1,7 +1,10 @@
 (require 'asdf)
 
 (asdf:clear-source-registry)
-(setf asdf:*central-registry* (list *default-pathname-defaults*))
+(asdf:initialize-source-registry
+ (list :source-registry
+       :ignore-inherited-configuration
+       (list :directory *default-pathname-defaults*)))
 (asdf:disable-output-translations)
 (asdf:load-system "gpg-utilities")
 
