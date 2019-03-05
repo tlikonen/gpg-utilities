@@ -1,6 +1,5 @@
 (require 'asdf)
 
-(asdf:clear-source-registry)
 (asdf:initialize-source-registry
  (list :source-registry
        :ignore-inherited-configuration
