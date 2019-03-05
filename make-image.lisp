@@ -2,6 +2,7 @@
 
 (asdf:clear-source-registry)
 (setf asdf:*central-registry* (list *default-pathname-defaults*))
+(asdf:disable-output-translations)
 (asdf:load-system "gpg-utilities")
 
 (sb-ext:save-lisp-and-die

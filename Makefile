@@ -44,7 +44,7 @@ uninstall:
 	rm -f $(libdir)/gpg-utilities
 
 clean:
-	rm -f -- gpg-utilities $(symlinks)
+	rm -f -- gpg-utilities $(symlinks) *.fasl
 
 clean-all: clean
 	rm -f $(conf)
