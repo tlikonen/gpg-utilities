@@ -41,10 +41,7 @@ Usage: `gpg-graph [key1 ...]`
 ### GPG Cert Path
 
 `gpg-cert-path` is a tool for finding the shortest certificate path(s)
-between two keys. The output is data for [Graphviz][]. The maximum steps
-between keys is limited to 5 which is [GnuPG][]'s default
-`--max-cert-depth` option. Long distances between keys would take very
-long time to find in large keyrings.
+between two keys. The output is data for [Graphviz][].
 
 Usage: `gpg-cert-path <from-key> <to-key>`
 

@@ -14,12 +14,12 @@
 
 (in-package #:gpg-cert-path)
 
-(defvar *max-steps* 5)
+(defvar *max-steps* 8)
 
 (defun shortest-paths (from to)
   (let ((paths nil)
         (max-steps *max-steps*))
-    (labels ((route (place path steps)
+    (labels ((route (place path reject steps)
                (push place path)
                (cond ((> steps max-steps))
                      ((eql place to)
@@ -27,11 +27,15 @@
                       (push (cons steps (reverse path)) paths))
                      ((and (not (eql place from))
                            (not (key-ok place))))
-                     (t (loop :for next
-                                :in (mapcar #'key (certificates-for place))
-                              :unless (member next path)
-                                :do (route next path (1+ steps)))))))
-      (route from nil 0)
+                     (t (loop :with current-certs-for
+                                := (mapcar #'key (certificates-for place))
+                              :for next :in current-certs-for
+                              :if (and (not (member next path))
+                                       (not (member next reject)))
+                                :do (route next path
+                                           (append current-certs-for reject)
+                                           (1+ steps)))))))
+      (route from nil nil 0)
       (when paths
         (mapcar #'rest (delete (reduce #'min paths :key #'first)
                                paths :key #'first :test-not #'=))))))
@@ -128,8 +132,7 @@
 
     (unless paths
       (format *error-output* "Couldn't find a path from KEY1 to KEY2 ~
-                within maximum steps (~D).~%"
-              *max-steps*)
+                within maximum steps (~D).~%" *max-steps*)
       (force-output *error-output*))
 
     (loop :for path :in paths
