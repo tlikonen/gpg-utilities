@@ -14,12 +14,14 @@
 
 (in-package #:gpg-cert-path)
 
-(defvar *max-steps* 8)
+(defvar *max-steps* 10)
 
 (defun shortest-paths (from to)
   (let ((paths nil)
-        (max-steps *max-steps*))
-    (labels ((route (place path reject steps)
+        (max-steps *max-steps*)
+        (studied (make-hash-table)))
+
+    (labels ((route (place path steps)
                (push place path)
                (cond ((> steps max-steps))
                      ((eql place to)
@@ -27,14 +29,22 @@
                       (push (cons steps (reverse path)) paths))
                      ((and (not (eql place from))
                            (not (key-ok place))))
-                     (t (loop :with current-certs-for
-                                := (mapcar #'key (certificates-for place))
-                              :with next-reject := (append current-certs-for reject)
-                              :for next :in current-certs-for
-                              :if (and (not (member next path))
-                                       (not (member next reject)))
-                                :do (route next path next-reject (1+ steps)))))))
-      (route from nil nil 0)
+                     ((and (gethash place studied)
+                           (> steps (gethash place studied))))
+                     (t
+                      (let ((certs-for
+                              (mapcar #'key (certificates-for place))))
+                        (loop :for next :in certs-for
+                              :for std := (gethash next studied)
+                              :do (setf (gethash next studied)
+                                        (if std
+                                            (min std (1+ steps))
+                                            (1+ steps))))
+                        (loop :for next :in certs-for
+                              :unless (member next path)
+                                :do (route next path (1+ steps))))))))
+
+      (route from nil 0)
       (when paths
         (mapcar #'rest (delete (reduce #'min paths :key #'first)
                                paths :key #'first :test-not #'=))))))
@@ -130,9 +140,9 @@
         (edges nil))
 
     (unless paths
-      (format *error-output* "Couldn't find a path from KEY1 to KEY2 ~
-                within maximum steps (~D).~%" *max-steps*)
-      (force-output *error-output*))
+      (error "Couldn't find a path from KEY1 to KEY2.~%~
+        Maybe there is no connection or at least not in this keyring~%~
+        or within the maximum steps (~D).~%" *max-steps*))
 
     (loop :for path :in paths
           :do (loop :for (key . rest) :on path
