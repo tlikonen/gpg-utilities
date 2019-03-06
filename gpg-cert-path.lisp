@@ -29,12 +29,11 @@
                            (not (key-ok place))))
                      (t (loop :with current-certs-for
                                 := (mapcar #'key (certificates-for place))
+                              :with next-reject := (append current-certs-for reject)
                               :for next :in current-certs-for
                               :if (and (not (member next path))
                                        (not (member next reject)))
-                                :do (route next path
-                                           (append current-certs-for reject)
-                                           (1+ steps)))))))
+                                :do (route next path next-reject (1+ steps)))))))
       (route from nil nil 0)
       (when paths
         (mapcar #'rest (delete (reduce #'min paths :key #'first)
