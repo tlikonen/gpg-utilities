@@ -1,7 +1,7 @@
 bindir = $(HOME)/bin
 libdir = $(HOME)/.local/lib
 sbcl = sbcl
-src = gpg-utilities.asd common.lisp \
+src = gpg-utilities.asd common.lisp start.lisp \
 	gpg-tofu.lisp gpg-graph.lisp gpg-cert-path.lisp
 symlinks = gpg-tofu gpg-graph gpg-cert-path
 conf = config.mk
