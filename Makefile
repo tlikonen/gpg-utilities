@@ -15,7 +15,7 @@ gpg-utilities: $(src)
 	$(sbcl) --script make-image.lisp
 
 $(symlinks): gpg-utilities
-	ln -s gpg-utilities $@
+	ln -fs gpg-utilities $@
 
 config: $(conf)
 
