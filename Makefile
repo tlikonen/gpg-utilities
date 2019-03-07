@@ -2,8 +2,8 @@ bindir = $(HOME)/bin
 libdir = $(HOME)/.local/lib
 sbcl = sbcl
 src = gpg-utilities.asd common.lisp start.lisp \
-	gpg-tofu.lisp gpg-graph.lisp gpg-cert-path.lisp
-symlinks = gpg-tofu gpg-graph gpg-cert-path
+	gpg-tofu.lisp gpg-graph.lisp gpg-cert-path.lisp gpg-count-steps.lisp
+symlinks = gpg-tofu gpg-graph gpg-cert-path gpg-count-steps
 conf = config.mk
 
 
@@ -35,12 +35,14 @@ install:
 		ln -fs $(libdir)/gpg-utilities gpg-tofu; \
 		ln -fs $(libdir)/gpg-utilities gpg-graph; \
 		ln -fs $(libdir)/gpg-utilities gpg-cert-path; \
+		ln -fs $(libdir)/gpg-utilities gpg-count-steps; \
 		}
 
 uninstall:
 	rm -f $(bindir)/gpg-tofu
 	rm -f $(bindir)/gpg-graph
 	rm -f $(bindir)/gpg-cert-path
+	rm -f $(bindir)/gpg-count-steps
 	rm -f $(libdir)/gpg-utilities
 
 clean:
