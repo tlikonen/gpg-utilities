@@ -6,7 +6,6 @@
            #:get-create-key #:only-latest-certs
            #:remove-old-certs
            #:certificates-for-p
-           #:list-of-certificates-from
            #:add-certificates-from
            #:add-certificates-for
            #:remove-certificates-from
@@ -65,9 +64,6 @@
 
 (defun certificates-for-p (key cert-key)
   (member cert-key (certificates-for key) :key #'key))
-
-(defun list-of-certificates-from (key)
-  (mapcar #'key (certificates-from key)))
 
 (defun add-certificates-from (key cert)
   (pushnew cert (certificates-from key)))

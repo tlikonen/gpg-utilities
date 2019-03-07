@@ -98,7 +98,7 @@ digraph \"GnuPG key graph\" {
                   (list (split-fingerprint (fingerprint key)))
                   (if (key-ok key) "" ", fontcolor=\"#aaaaaa\""))
 
-          (loop :for cert :in (list-of-certificates-from key)
+          (loop :for cert :in (mapcar #'key (certificates-from key))
                 :if (user-id cert) :do
                   (format t "    \"~A\" -> \"~A\" [dir=~A];~%"
                           (fingerprint cert) (fingerprint key)
