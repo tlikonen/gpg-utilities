@@ -14,7 +14,7 @@
 
 (in-package #:gpg-cert-path)
 
-(defvar *max-steps* 10)
+(defvar *max-steps* 20)
 
 (defun shortest-paths (from to)
   (let ((paths nil)
