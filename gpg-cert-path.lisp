@@ -14,43 +14,6 @@
 
 (in-package #:gpg-cert-path)
 
-(defvar *max-steps* 20)
-
-(defun shortest-paths (from to)
-  (let ((paths nil)
-        (max-steps *max-steps*)
-        (studied (make-hash-table)))
-
-    (labels ((route (place path steps)
-               (push place path)
-               (cond ((> steps max-steps))
-                     ((> steps (gethash place studied)))
-                     ((eql place to)
-                      (setf max-steps (min max-steps steps))
-                      (push (cons steps (reverse path)) paths))
-                     ((and (not (eql place from))
-                           (not (key-ok place))))
-                     (t
-                      (let ((certs-for
-                              (mapcar #'key (certificates-for place))))
-                        (loop :for next :in certs-for
-                              :for std := (gethash next studied)
-                              :do (setf (gethash next studied)
-                                        (if std
-                                            (min std (1+ steps))
-                                            (1+ steps))))
-                        (loop :for next :in certs-for
-                              :do (route next path (1+ steps))))))))
-
-      (setf (gethash from studied) 0)
-      (route from nil 0)
-      (if paths
-          (let ((steps (reduce #'min paths :key #'first)))
-            (values (mapcar #'rest (delete steps paths
-                                           :key #'first :test-not #'=))
-                    steps))
-          (values nil nil)))))
-
 (defun main (key1 key2)
   (unless (and (stringp key1)
                (stringp key2)
@@ -150,7 +113,7 @@
     (unless paths
       (error "Couldn't find a path between the keys.~%~
         Maybe there is no connection or at least not in this keyring~%~
-        or within the maximum steps (~D).~%" *max-steps*))
+        or within the maximum steps (~D).~%" *shortest-path-max-steps*))
 
     (loop :for path :in paths
           :do (loop :for (key . rest) :on path
