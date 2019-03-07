@@ -38,8 +38,8 @@ Subcommands: tofu, graph, cert-path and count-steps. A subcommand is
 executed automatically if this program is started with any of the
 following names: gpg-tofu, gpg-graph, gpg-cert-path or gpg-count-steps.
 
-Type \"-h\" or \"--help\" as an option for subcommans to print help on
-that specific subcommand.~%~%" program)))))
+Option \"-h\" or \"--help\" for a subcommand prints help on that
+specific subcommand.~%~%" program)))))
 
     (sb-int:simple-stream-error () nil)
     (sb-sys:interactive-interrupt ()
