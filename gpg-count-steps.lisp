@@ -59,7 +59,8 @@
                                     (or (digit-char-p char)
                                         (find (char-upcase char) "ABCDEF")))
                                   key))))
-          :do (error "Usage: [from-key [to-key]]"))
+          :do (error "Usage: gpg-count-steps [from-key [to-key]]~%~
+                (Arguments are 40-character key fingerprints.)"))
 
   (when (and key1 key2 (equalp key1 key2))
     (error "The FROM and TO keys can't be the same."))

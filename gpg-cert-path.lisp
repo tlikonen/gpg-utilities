@@ -64,7 +64,8 @@
                         (or (digit-char-p char)
                             (find (char-upcase char) "ABCDEF")))
                       key2))
-    (error "Give two different 40-character key fingerprints as arguments."))
+    (error "Usage: gpg-cert-path <from-key> <to-key>~%~
+        (Arguments are 40-character key fingerprints.)"))
 
   (setf key1 (string-upcase key1)
         key2 (string-upcase key2))
@@ -131,9 +132,9 @@
                                :date (parse-time-stamp (nth 5 fields))))))))
 
   (cond ((not (typep key1 'key))
-         (error "The KEY1 not found in the keyring."))
+         (error "The FROM key not found in the keyring."))
         ((not (typep key2 'key))
-         (error "The KEY2 not found in the keyring.")))
+         (error "The TO key not found in the keyring.")))
 
   (remove-old-certs)
 
@@ -147,7 +148,7 @@
         (edges nil))
 
     (unless paths
-      (error "Couldn't find a path from KEY1 to KEY2.~%~
+      (error "Couldn't find a path between the keys.~%~
         Maybe there is no connection or at least not in this keyring~%~
         or within the maximum steps (~D).~%" *max-steps*))
 
