@@ -1,4 +1,4 @@
-;; gpg-count-steps - Count certificate steps between all gpg keys
+;; gpg-count-steps - Count certificate steps between gpg keys
 ;;
 ;; Author: Teemu Likonen <tlikonen@iki.fi>
 ;;
@@ -51,7 +51,19 @@
                     steps))
           (values nil nil)))))
 
-(defun main ()
+(defun main (&optional key1 key2)
+  (loop :for key :in (list key1 key2)
+        :if (and key
+                 (not (and (= 40 (length key))
+                           (every (lambda (char)
+                                    (or (digit-char-p char)
+                                        (find (char-upcase char) "ABCDEF")))
+                                  key))))
+          :do (error "Usage: [from-key [to-key]]"))
+
+  (when (and key1 key2 (equalp key1 key2))
+    (error "The FROM and TO keys can't be the same."))
+
   (clrhash *keys*)
 
   (with-open-stream
@@ -84,7 +96,13 @@
               ((and (member :fpr expect)
                     (string= "fpr" (nth 0 fields)))
                (setf expect '(:uid))
-               (setf (fingerprint key) (nth 9 fields)))
+               (setf (fingerprint key) (nth 9 fields))
+               (cond ((and (stringp key1)
+                           (string= key1 (fingerprint key)))
+                      (setf key1 key))
+                     ((and (stringp key2)
+                           (string= key2 (fingerprint key)))
+                      (setf key2 key))))
 
               ((and (member :uid expect)
                     (string= "uid" (nth 0 fields))
@@ -107,19 +125,35 @@
                                :key key
                                :date (parse-time-stamp (nth 5 fields))))))))
 
+  (cond ((stringp key1)
+         (error "The FROM key not found in the keyring."))
+        ((stringp key2)
+         (error "The TO key not found in the keyring.")))
+
   (remove-old-certs)
 
-  (loop :for key1 :being :each :hash-value :in *keys* :do
-    (loop :for key2 :being :each :hash-value :in *keys*
-          :unless (eql key1 key2) :do
-            (multiple-value-bind (paths steps)
-                (shortest-paths key1 key2)
-              (declare (ignore paths))
-              (format t "~A ~A ~D~%" (fingerprint key1) (fingerprint key2)
-                      (or steps "-"))))))
+  (flet ((print-steps (key1 key2)
+           (multiple-value-bind (paths steps)
+               (shortest-paths key1 key2)
+             (declare (ignore paths))
+             (format t "~A ~A ~D~%" (fingerprint key1) (fingerprint key2)
+                     (or steps "-")))))
+
+    (cond ((and key1 key2)
+           (print-steps key1 key2))
+          ((and key1 (not key2))
+           (loop :for key2 :being :each :hash-value :in *keys*
+                 :unless (eql key1 key2) :do
+                   (print-steps key1 key2)))
+          (t
+           (loop :for key1 :being :each :hash-value :in *keys* :do
+             (loop :for key2 :being :each :hash-value :in *keys*
+                   :unless (eql key1 key2) :do
+                     (print-steps key1 key2)))))))
 
 (defun start ()
-  (handler-case (main)
+  (handler-case (main (nth 1 sb-ext:*posix-argv*)
+                      (nth 2 sb-ext:*posix-argv*))
     (sb-int:simple-stream-error ()
       nil)
     (sb-sys:interactive-interrupt ()

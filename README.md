@@ -53,15 +53,19 @@ Usage: `gpg-cert-path <from-key> <to-key>`
 ### GPG Count Steps
 
 `gpg-count-steps` counts how many certificate steps there are between
-any two keys in the keyring. It tests all keys between each other. The
-output consists of lines with three fields:
+any two keys in the keyring. It can test all keys between each other or
+just specified keys. If one key is given as argument it tests
+certificate paths from that key to all other keys. If two keys are given
+as arguments it tests just those keys.
+
+The output consists of lines with three fields:
 
  1. The fingerprint of the "from" key.
  2. The fingerprint of the "to" key.
  3. The number of steps between the keys (or "-" if connection wasn't
     found).
 
-Usage: `gpg-count-steps`
+Usage: `gpg-count-steps [from-key [to-key]]`
 
 [GnuPG]:    https://gnupg.org/
 [Graphviz]: https://graphviz.org/
