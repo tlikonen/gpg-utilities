@@ -10,11 +10,38 @@
 
 (defpackage #:gpg-graph
   (:use #:cl #:common)
-  (:export #:start))
+  (:export #:main))
 
 (in-package #:gpg-graph)
 
+(defun print-usage ()
+  (format t "~
+Usage: gpg-graph [options] [--] [key1 ...]
+
+Find connections between GnuPG keys based on certificates (key
+signatures) and output data for Graphviz which can draw a web of trust
+image. The arguments can be any valid references to GnuPG keys. See
+gpg(1) manual for help on that topic.
+
+Graphviz comes with tools like \"dot\", \"neato\", \"fdp\" etc. which
+use different algorithms for drawing nodes and edges. Example:
+
+  $ gpg-graph [key1 ...] | dot -Tpng > web-of-trust.png
+
+Options:
+
+  -h, --help    Print this help text.~%~%"))
+
 (defun main (&rest args)
+  (multiple-value-bind (options arguments unknown)
+      (parse-command-line args)
+    (loop :for u :in unknown
+          :do (format *error-output* "Unknown option \"~A\".~%" u))
+    (when (getf options :help)
+      (print-usage)
+      (sb-ext:exit :code 0))
+    (setf args arguments))
+
   (clrhash *keys*)
 
   (with-open-stream
@@ -108,12 +135,3 @@ digraph \"GnuPG key graph\" {
                               "forward"))))
 
   (format t "}~%"))
-
-(defun start (args)
-  (handler-case (apply #'main args)
-    (sb-int:simple-stream-error ()
-      nil)
-    (sb-sys:interactive-interrupt ()
-      (terpri))
-    (serious-condition (c)
-      (format *error-output* "~&~A~%" c))))

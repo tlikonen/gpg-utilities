@@ -10,148 +10,168 @@
 
 (defpackage #:gpg-cert-path
   (:use #:cl #:common)
-  (:export #:start))
+  (:export #:main))
 
 (in-package #:gpg-cert-path)
 
-(defun main (key1 key2)
-  (unless (and (stringp key1)
-               (stringp key2)
-               (= 40 (length key1) (length key2))
-               (string/= key1 key2)
-               (every (lambda (char)
-                        (or (digit-char-p char)
-                            (find (char-upcase char) "ABCDEF")))
-                      key1)
-               (every (lambda (char)
-                        (or (digit-char-p char)
-                            (find (char-upcase char) "ABCDEF")))
-                      key2))
-    (error "Usage: gpg-cert-path <from-key> <to-key>~%~
-        (Arguments are 40-character key fingerprints.)"))
+(defun print-usage ()
+  (format t "~
+Usage: gpg-cert-path [options] [--] <from-key> <to-key>
 
-  (setf key1 (string-upcase key1)
-        key2 (string-upcase key2))
+Find the shortest certificate path(s) between two GnuPG keys. The output
+is data for Graphviz which can draw an image of certificate path. Both
+arguments must be 40-character key fingerprints.
 
-  (clrhash *keys*)
+Graphviz comes with tools like \"dot\", \"neato\", \"fdp\" etc. which
+use different algorithms for drawing nodes and edges. Example:
 
-  (with-open-stream
-      (gpg (sb-ext:process-output
-            (sb-ext:run-program "gpg" (list "--batch" "--no-tty"
-                                            "--with-colons"
-                                            "--with-fingerprint"
-                                            "--check-signatures")
-                                :search t :wait nil
-                                :output :stream
-                                :error *error-output*)))
+  $ gpg-cert-path <from-key> <to-key> | dot -Tpng > trust-path.png
 
-    (loop :with key-id :with key :with expect
-          :for line := (read-line gpg nil)
-          :for fields := (if line (split-colon-string line))
+Options:
 
-          :while line :do
-            (cond
-              ((string= "pub" (nth 0 fields))
-               (setf expect '(:fpr))
-               (setf key-id (nth 4 fields))
-               (setf key (get-create-key key-id))
-               (when (and (plusp (length (nth 1 fields)))
-                          (find (aref (nth 1 fields) 0) "re"))
-                 (setf (key-ok key) nil)))
+  -h, --help    Print this help text.~%~%"))
 
-              ((string= "sub" (nth 0 fields))
-               (setf expect nil))
+(defun main (&rest args)
+  (let ((key1 nil)
+        (key2 nil))
 
-              ((and (member :fpr expect)
-                    (string= "fpr" (nth 0 fields)))
-               (setf expect '(:uid))
-               (setf (fingerprint key) (nth 9 fields))
-               (cond ((and (stringp key1)
-                           (string= key1 (fingerprint key)))
-                      (setf key1 key))
-                     ((and (stringp key2)
-                           (string= key2 (fingerprint key)))
-                      (setf key2 key))))
+    (multiple-value-bind (options arguments unknown)
+        (parse-command-line args)
+      (loop :for u :in unknown
+            :do (format *error-output* "Unknown option \"~A\".~%" u))
+      (when (getf options :help)
+        (print-usage)
+        (sb-ext:exit :code 0))
+      (setf key1 (nth 0 arguments)
+            key2 (nth 1 arguments)))
 
-              ((and (member :uid expect)
-                    (string= "uid" (nth 0 fields))
-                    (not (user-id key)))
-               (setf expect '(:sig))
-               (setf (user-id key) (prepare-user-id (nth 9 fields))))
+    (unless (and (stringp key1)
+                 (stringp key2)
+                 (= 40 (length key1) (length key2))
+                 (string/= key1 key2)
+                 (every (lambda (char)
+                          (or (digit-char-p char)
+                              (find (char-upcase char) "ABCDEF")))
+                        key1)
+                 (every (lambda (char)
+                          (or (digit-char-p char)
+                              (find (char-upcase char) "ABCDEF")))
+                        key2))
+      (error "Arguments must be 40-character key fingerprints."))
 
-              ((and (member :sig expect)
-                    (or (string= "sig" (nth 0 fields))
-                        (string= "rev" (nth 0 fields)))
-                    (plusp (length (nth 1 fields)))
-                    (char= #\! (aref (nth 1 fields) 0))
-                    (string/= key-id (nth 4 fields))
-                    (date-not-expired-p (nth 6 fields)))
-               (add-certificates-for
-                (get-create-key (nth 4 fields))
-                (make-instance (if (string= "sig" (nth 0 fields))
-                                   'certificate
-                                   'revocation)
-                               :key key
-                               :date (parse-time-stamp (nth 5 fields))))))))
+    (setf key1 (string-upcase key1)
+          key2 (string-upcase key2))
 
-  (cond ((not (typep key1 'key))
-         (error "The FROM key not found in the keyring."))
-        ((not (typep key2 'key))
-         (error "The TO key not found in the keyring.")))
+    (clrhash *keys*)
 
-  (remove-old-certs)
+    (with-open-stream
+        (gpg (sb-ext:process-output
+              (sb-ext:run-program "gpg" (list "--batch" "--no-tty"
+                                              "--with-colons"
+                                              "--with-fingerprint"
+                                              "--check-signatures")
+                                  :search t :wait nil
+                                  :output :stream
+                                  :error *error-output*)))
 
-  (let ((paths (multiple-value-bind (paths steps)
-                   (shortest-paths key1 key2)
-                 (when steps
-                   (format *error-output* "Number of steps: ~D~%"
-                           steps))
-                 paths))
-        (keys nil)
-        (edges nil))
+      (loop :with key-id :with key :with expect
+            :for line := (read-line gpg nil)
+            :for fields := (if line (split-colon-string line))
 
-    (unless paths
-      (error "Couldn't find a path between the keys.~%~
+            :while line :do
+              (cond
+                ((string= "pub" (nth 0 fields))
+                 (setf expect '(:fpr))
+                 (setf key-id (nth 4 fields))
+                 (setf key (get-create-key key-id))
+                 (when (and (plusp (length (nth 1 fields)))
+                            (find (aref (nth 1 fields) 0) "re"))
+                   (setf (key-ok key) nil)))
+
+                ((string= "sub" (nth 0 fields))
+                 (setf expect nil))
+
+                ((and (member :fpr expect)
+                      (string= "fpr" (nth 0 fields)))
+                 (setf expect '(:uid))
+                 (setf (fingerprint key) (nth 9 fields))
+                 (cond ((and (stringp key1)
+                             (string= key1 (fingerprint key)))
+                        (setf key1 key))
+                       ((and (stringp key2)
+                             (string= key2 (fingerprint key)))
+                        (setf key2 key))))
+
+                ((and (member :uid expect)
+                      (string= "uid" (nth 0 fields))
+                      (not (user-id key)))
+                 (setf expect '(:sig))
+                 (setf (user-id key) (prepare-user-id (nth 9 fields))))
+
+                ((and (member :sig expect)
+                      (or (string= "sig" (nth 0 fields))
+                          (string= "rev" (nth 0 fields)))
+                      (plusp (length (nth 1 fields)))
+                      (char= #\! (aref (nth 1 fields) 0))
+                      (string/= key-id (nth 4 fields))
+                      (date-not-expired-p (nth 6 fields)))
+                 (add-certificates-for
+                  (get-create-key (nth 4 fields))
+                  (make-instance (if (string= "sig" (nth 0 fields))
+                                     'certificate
+                                     'revocation)
+                                 :key key
+                                 :date (parse-time-stamp (nth 5 fields))))))))
+
+    (cond ((not (typep key1 'key))
+           (error "The FROM key not found in the keyring."))
+          ((not (typep key2 'key))
+           (error "The TO key not found in the keyring.")))
+
+    (remove-old-certs)
+
+    (let ((paths (multiple-value-bind (paths steps)
+                     (shortest-paths key1 key2)
+                   (when steps
+                     (format *error-output* "Number of steps: ~D~%"
+                             steps))
+                   paths))
+          (keys nil)
+          (edges nil))
+
+      (unless paths
+        (error "Couldn't find a path between the keys.~%~
         Maybe there is no connection or at least not in this keyring~%~
         or within the maximum steps (~D).~%" *shortest-path-max-steps*))
 
-    (loop :for path :in paths
-          :do (loop :for (key . rest) :on path
-                    :do (push key keys)
-                        (when (first rest)
-                          (push (cons key (first rest)) edges)))
+      (loop :for path :in paths
+            :do (loop :for (key . rest) :on path
+                      :do (push key keys)
+                          (when (first rest)
+                            (push (cons key (first rest)) edges)))
 
-          :finally
-             (setf keys (delete-duplicates (list* key1 key2 keys))
-                   edges (delete-duplicates edges :test #'equal)))
+            :finally
+               (setf keys (delete-duplicates (list* key1 key2 keys))
+                     edges (delete-duplicates edges :test #'equal)))
 
-    (format t "~
+      (format t "~
 digraph \"GnuPG certificate path\" {
   overlap=scale;
   splines=true;
   node [shape=box];
 ")
 
-    (loop :for key :in keys
-          :do (format t "  \"~A\"~%    [label=\"~A\\l~?\"~A];~%"
-                      (fingerprint key) (user-id key)
-                      (if (>= (length (user-id key)) 55)
-                          "~{~A~^ ~}\\l"
-                          "~{~A ~A ~A ~A ~A~^ ...\\l... ~}\\r")
-                      (list (split-fingerprint (fingerprint key)))
-                      (if (key-ok key) "" ", fontcolor=\"#aaaaaa\"")))
+      (loop :for key :in keys
+            :do (format t "  \"~A\"~%    [label=\"~A\\l~?\"~A];~%"
+                        (fingerprint key) (user-id key)
+                        (if (>= (length (user-id key)) 55)
+                            "~{~A~^ ~}\\l"
+                            "~{~A ~A ~A ~A ~A~^ ...\\l... ~}\\r")
+                        (list (split-fingerprint (fingerprint key)))
+                        (if (key-ok key) "" ", fontcolor=\"#aaaaaa\"")))
 
-    (loop :for (key1 . key2) :in edges
-          :do (format t "  \"~A\" -> \"~A\";~%"
-                      (fingerprint key1) (fingerprint key2)))
+      (loop :for (key1 . key2) :in edges
+            :do (format t "  \"~A\" -> \"~A\";~%"
+                        (fingerprint key1) (fingerprint key2)))
 
-    (format t "}~%")))
-
-(defun start (args)
-  (handler-case (main (nth 0 args) (nth 1 args))
-    (sb-int:simple-stream-error ()
-      nil)
-    (sb-sys:interactive-interrupt ()
-      (terpri))
-    (serious-condition (c)
-      (format *error-output* "~&~A~%" c))))
+      (format t "}~%"))))

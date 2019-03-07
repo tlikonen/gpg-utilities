@@ -10,7 +10,7 @@
 
 (defpackage #:gpg-tofu
   (:use #:cl #:common)
-  (:export #:start))
+  (:export #:main))
 
 (in-package #:gpg-tofu)
 
@@ -82,7 +82,28 @@
 (defun echo (format &rest arguments)
   (apply #'format t format arguments))
 
+(defun print-usage ()
+  (format t "~
+Usage: gpg-tofu [options] [--] [key1 ...]
+
+Print \"trust on first use\" (TOFU) statistics for GnuPG keys. The
+arguments can be any valid references to GnuPG keys. See gpg(1) manual
+for help on that topic.
+
+Options:
+
+  -h, --help    Print this help text.~%~%"))
+
 (defun main (&rest args)
+  (multiple-value-bind (options arguments unknown)
+      (parse-command-line args)
+    (loop :for u :in unknown
+          :do (format *error-output* "Unknown option \"~A\".~%" u))
+    (when (getf options :help)
+      (print-usage)
+      (sb-ext:exit :code 0))
+    (setf args arguments))
+
   (with-open-stream
       (gpg (sb-ext:process-output
             (sb-ext:run-program "gpg" (list* "--batch" "--no-tty"
@@ -175,12 +196,3 @@
                         (echo " in ~A"
                               (format-time-stamp encryption-last))))
                      (echo "~%")))))))))
-
-(defun start (args)
-  (handler-case (apply #'main args)
-    (sb-int:simple-stream-error ()
-      nil)
-    (sb-sys:interactive-interrupt ()
-      (terpri))
-    (serious-condition (c)
-      (format *error-output* "~&~A~%" c))))

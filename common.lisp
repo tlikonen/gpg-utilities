@@ -17,6 +17,7 @@
            #:date-not-expired-p
            #:split-fingerprint
            #:shortest-paths #:*shortest-path-max-steps*
+           #:parse-command-line
            ))
 
 (in-package #:common)
@@ -176,3 +177,36 @@
                                            :key #'first :test-not #'=))
                     steps))
           (values nil nil)))))
+
+(defun parse-command-line (args)
+  (loop :with help :with unknown
+        :with arg
+        :while args
+        :if (setf arg (pop args)) :do
+
+          (cond
+            ((string= "--" arg)
+             (loop-finish))
+
+            ((and (> (length arg) 2)
+                  (string= "--" (subseq arg 0 2)))
+             (cond ((string= arg "--help")
+                    (setf help t))
+                   (t (push arg unknown))))
+
+            ((and (> (length arg) 1)
+                  (char= #\- (aref arg 0)))
+             (loop :for option :across (subseq arg 1)
+                   :do (case option
+                         (#\h (setf help t))
+                         (t (push (format nil "-~C" option) unknown)))))
+
+            (t (push arg args)
+               (loop-finish)))
+
+        :finally
+           (return
+             (values
+              (list :help help)
+              args
+              (delete-duplicates (nreverse unknown)) :test #'string=))))

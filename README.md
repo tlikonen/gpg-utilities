@@ -14,7 +14,7 @@ Programs
 statistics about the keys. It is analogous to `gpg --list-keys` command
 but only with TOFU statistics.
 
-Usage: `gpg-tofu [key1 ...]`
+Usage: `gpg-tofu [options] [--] [key1 ...]`
 
     $ gpg-tofu tlikonen@iki.fi
 
@@ -25,6 +25,8 @@ Usage: `gpg-tofu [key1 ...]`
         404 encryptions in 1 year 244 days, first: 2017-06-15 14:41:30Z, last: 2019-02-14 19:25:41Z
     [...]
 
+Use `-h` or `--help` option to print help text.
+
 
 ### GPG Graph
 
@@ -32,11 +34,13 @@ Usage: `gpg-tofu [key1 ...]`
 of trust) and outputs graph data in [Graphviz][] format. Graphviz can
 then be used to draw web of trust images.
 
-Usage: `gpg-graph [key1 ...]`
+Usage: `gpg-graph [options] [--] [key1 ...]`
 
     $ gpg-graph kernel.org | dot -Tpng >wot-dot.png
     $ gpg-graph kernel.org | neato -Tpng >wot-neato.png
     $ gpg-graph kernel.org | sfdp -Tpng >wot-sfdp.png
+
+Use `-h` or `--help` option to print help text.
 
 
 ### GPG Cert Path
@@ -44,10 +48,12 @@ Usage: `gpg-graph [key1 ...]`
 `gpg-cert-path` is a tool for finding the shortest certificate path(s)
 between two keys. The output is data for [Graphviz][].
 
-Usage: `gpg-cert-path <from-key> <to-key>`
+Usage: `gpg-cert-path [options] [--] <from-key> <to-key>`
 
     $ gpg-cert-path 80615870F5BAD690333686D0F2AD85AC1E42B367 \
         ABAF11C65A2970B130ABE3C479BE3E4300411886 | dot -Tpng >path.png
+
+Use `-h` or `--help` option to print help text.
 
 
 ### GPG Count Steps
@@ -65,7 +71,10 @@ The output consists of lines with three fields:
  3. The number of steps between the keys (or "-" if connection wasn't
     found).
 
-Usage: `gpg-count-steps [from-key [to-key]]`
+Usage: `gpg-count-steps [options] [--] [from-key [to-key]]`
+
+Use `-h` or `--help` option to print help text.
+
 
 [GnuPG]:    https://gnupg.org/
 [Graphviz]: https://graphviz.org/
