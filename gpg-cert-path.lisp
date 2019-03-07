@@ -24,13 +24,12 @@
     (labels ((route (place path steps)
                (push place path)
                (cond ((> steps max-steps))
+                     ((> steps (gethash place studied)))
                      ((eql place to)
                       (setf max-steps (min max-steps steps))
                       (push (cons steps (reverse path)) paths))
                      ((and (not (eql place from))
                            (not (key-ok place))))
-                     ((and (gethash place studied)
-                           (> steps (gethash place studied))))
                      (t
                       (let ((certs-for
                               (mapcar #'key (certificates-for place))))
@@ -41,9 +40,9 @@
                                             (min std (1+ steps))
                                             (1+ steps))))
                         (loop :for next :in certs-for
-                              :unless (member next path)
-                                :do (route next path (1+ steps))))))))
+                              :do (route next path (1+ steps))))))))
 
+      (setf (gethash from studied) 0)
       (route from nil 0)
       (when paths
         (mapcar #'rest (delete (reduce #'min paths :key #'first)
