@@ -209,4 +209,4 @@
              (values
               (list :help help)
               args
-              (delete-duplicates (nreverse unknown)) :test #'string=))))
+              (delete-duplicates (nreverse unknown) :test #'string=)))))
