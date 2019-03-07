@@ -115,9 +115,8 @@
                    :unless (eql key1 key2) :do
                      (print-steps key1 key2)))))))
 
-(defun start ()
-  (handler-case (main (nth 1 sb-ext:*posix-argv*)
-                      (nth 2 sb-ext:*posix-argv*))
+(defun start (args)
+  (handler-case (main (nth 0 args) (nth 1 args))
     (sb-int:simple-stream-error ()
       nil)
     (sb-sys:interactive-interrupt ()

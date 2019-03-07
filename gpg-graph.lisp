@@ -109,8 +109,8 @@ digraph \"GnuPG key graph\" {
 
   (format t "}~%"))
 
-(defun start ()
-  (handler-case (apply #'main (rest sb-ext:*posix-argv*))
+(defun start (args)
+  (handler-case (apply #'main args)
     (sb-int:simple-stream-error ()
       nil)
     (sb-sys:interactive-interrupt ()
