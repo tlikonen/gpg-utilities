@@ -44,9 +44,12 @@
 
       (setf (gethash from studied) 0)
       (route from nil 0)
-      (when paths
-        (mapcar #'rest (delete (reduce #'min paths :key #'first)
-                               paths :key #'first :test-not #'=))))))
+      (if paths
+          (let ((steps (reduce #'min paths :key #'first)))
+            (values (mapcar #'rest (delete steps paths
+                                           :key #'first :test-not #'=))
+                    steps))
+          (values nil nil)))))
 
 (defun main (key1 key2)
   (unless (and (stringp key1)
@@ -134,7 +137,12 @@
 
   (remove-old-certs)
 
-  (let ((paths (shortest-paths key1 key2))
+  (let ((paths (multiple-value-bind (paths steps)
+                   (shortest-paths key1 key2)
+                 (when steps
+                   (format *error-output* "Number of steps: ~D~%"
+                           steps))
+                 paths))
         (keys nil)
         (edges nil))
 
