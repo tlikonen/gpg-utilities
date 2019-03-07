@@ -77,7 +77,7 @@ How to Build and Install
 The programs are written in the Common Lisp language and require [Steel
 Bank Common Lisp][SBCL] implementation for compiling. For drawing graphs
 the [Graphviz][] tool is required. Both should be available in common
-GNU/Linux distributions (Debian: `apt install sbcl graphviz`).
+GNU/Linux distributions ([Debian][]: `apt install sbcl graphviz`).
 
 To build the necessary files run this command:
 
@@ -104,6 +104,7 @@ configuration as during installation. You can clean build files with
 `make clean` or `make clean-all` (which deletes also the configuration).
 
 [SBCL]:     http://sbcl.org/
+[Debian]:   https://www.debian.org/
 
 
 Author and License
