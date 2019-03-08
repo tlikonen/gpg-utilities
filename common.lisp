@@ -149,18 +149,19 @@
         (studied (make-hash-table)))
 
     (labels ((levels (keys level)
-               (loop
-                 :with certs-for
-                 :for key :in keys
-                 :unless (gethash key studied)
-                   :do (setf (gethash key studied) level)
-                       (loop :for cert :in (certificates-for key)
-                             :for cert-key := (key cert)
-                             :unless (gethash cert-key studied)
-                               :do (push cert-key certs-for))
-                 :finally
-                    (when certs-for
-                      (levels certs-for (1+ level)))))
+               (unless (> level *shortest-path-max-steps*)
+                 (loop
+                   :with certs-for
+                   :for key :in keys
+                   :unless (gethash key studied)
+                     :do (setf (gethash key studied) level)
+                         (loop :for cert :in (certificates-for key)
+                               :for cert-key := (key cert)
+                               :unless (gethash cert-key studied)
+                                 :do (push cert-key certs-for))
+                   :finally
+                      (when certs-for
+                        (levels certs-for (1+ level))))))
 
              (route (place path steps)
                (push place path)
