@@ -57,7 +57,7 @@ Options:
                           (or (digit-char-p char)
                               (find (char-upcase char) "ABCDEF")))
                         key2))
-      (error "Arguments must be 40-character key fingerprints."))
+      (error "Invalid arguments. See \"-h\" for help."))
 
     (setf key1 (string-upcase key1)
           key2 (string-upcase key2))
