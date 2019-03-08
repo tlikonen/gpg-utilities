@@ -145,7 +145,6 @@
 
 (defun shortest-paths (from to)
   (let ((paths nil)
-        (max-steps *shortest-path-max-steps*)
         (studied (make-hash-table))
         (found nil))
 
@@ -168,10 +167,9 @@
 
              (route (place path steps)
                (push place path)
-               (cond ((> steps max-steps))
+               (cond ((not (gethash place studied)))
                      ((> steps (gethash place studied)))
                      ((eql place to)
-                      (setf max-steps (min max-steps steps))
                       (push (cons steps (reverse path)) paths))
                      ((and (not (eql place from))
                            (not (key-ok place))))
