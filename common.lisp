@@ -148,7 +148,21 @@
         (max-steps *shortest-path-max-steps*)
         (studied (make-hash-table)))
 
-    (labels ((route (place path steps)
+    (labels ((levels (keys level)
+               (loop
+                 :with certs-for
+                 :for key :in keys
+                 :unless (gethash key studied)
+                   :do (setf (gethash key studied) level)
+                       (loop :for cert :in (certificates-for key)
+                             :for cert-key := (key cert)
+                             :unless (gethash cert-key studied)
+                               :do (push cert-key certs-for))
+                 :finally
+                    (when certs-for
+                      (levels certs-for (1+ level)))))
+
+             (route (place path steps)
                (push place path)
                (cond ((> steps max-steps))
                      ((> steps (gethash place studied)))
@@ -158,19 +172,13 @@
                      ((and (not (eql place from))
                            (not (key-ok place))))
                      (t
-                      (let ((certs-for
-                              (mapcar #'key (certificates-for place))))
-                        (loop :for next :in certs-for
-                              :for std := (gethash next studied)
-                              :do (setf (gethash next studied)
-                                        (if std
-                                            (min std (1+ steps))
-                                            (1+ steps))))
-                        (loop :for next :in certs-for
-                              :do (route next path (1+ steps))))))))
+                      (loop :for next :in (mapcar #'key (certificates-for
+                                                         place))
+                            :do (route next path (1+ steps)))))))
 
-      (setf (gethash from studied) 0)
+      (levels (list from) 0)
       (route from nil 0)
+
       (if paths
           (let ((steps (reduce #'min paths :key #'first)))
             (values (mapcar #'rest (delete steps paths
