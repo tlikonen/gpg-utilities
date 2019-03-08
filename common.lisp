@@ -146,16 +146,13 @@
 (defun shortest-paths (from to)
   (let ((paths nil)
         (max-steps *shortest-path-max-steps*)
-        (studied (make-hash-table))
-        (found nil))
+        (studied (make-hash-table)))
 
     (labels ((levels (keys level)
                (unless (> level *shortest-path-max-steps*)
                  (loop
                    :with certs-for
                    :for key :in keys
-                   :if (eql key to)
-                     :do (setf found t)
                    :unless (gethash key studied)
                      :do (setf (gethash key studied) level)
                          (loop :for cert :in (certificates-for key)
@@ -163,7 +160,7 @@
                                :unless (gethash cert-key studied)
                                  :do (push cert-key certs-for))
                    :finally
-                      (when (and certs-for (not found))
+                      (when certs-for
                         (levels certs-for (1+ level))))))
 
              (route (place path steps)
@@ -181,7 +178,7 @@
                             :do (route next path (1+ steps)))))))
 
       (levels (list from) 0)
-      (when found (route from nil 0))
+      (route from nil 0)
 
       (if paths
           (let ((steps (reduce #'min paths :key #'first)))
