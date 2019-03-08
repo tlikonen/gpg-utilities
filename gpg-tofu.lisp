@@ -106,11 +106,12 @@ Options:
 
   (with-open-stream
       (gpg (sb-ext:process-output
-            (sb-ext:run-program "gpg" (list* "--batch" "--no-tty"
-                                             "--with-tofu-info"
-                                             "--with-colons"
-                                             "--list-keys"
-                                             "--" args)
+            (sb-ext:run-program *gpg-program*
+                                (list* "--batch" "--no-tty"
+                                       "--with-tofu-info"
+                                       "--with-colons"
+                                       "--list-keys"
+                                       "--" args)
                                 :search t :wait nil
                                 :output :stream
                                 :error *error-output*)))

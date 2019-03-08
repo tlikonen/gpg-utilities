@@ -6,6 +6,8 @@
        (list :directory *default-pathname-defaults*)))
 (asdf:disable-output-translations)
 (asdf:load-system "gpg-utilities")
+(when (nth 1 sb-ext:*posix-argv*)
+  (setf common:*gpg-program* (nth 1 sb-ext:*posix-argv*)))
 
 (sb-ext:save-lisp-and-die
  "gpg-utilities"

@@ -1,18 +1,18 @@
 bindir = $(HOME)/bin
 libdir = $(HOME)/.local/lib
 sbcl = sbcl
+gpg = gpg
 src = gpg-utilities.asd common.lisp start.lisp \
 	gpg-tofu.lisp gpg-graph.lisp gpg-cert-path.lisp gpg-count-steps.lisp
 symlinks = gpg-tofu gpg-graph gpg-cert-path gpg-count-steps
 conf = config.mk
-
 
 -include $(conf)
 
 all: gpg-utilities $(symlinks)
 
 gpg-utilities: $(src)
-	$(sbcl) --script make-image.lisp
+	$(sbcl) --script make-image.lisp '$(gpg)'
 
 $(symlinks): gpg-utilities
 	ln -fs gpg-utilities $@
@@ -21,6 +21,7 @@ config: $(conf)
 
 $(conf):
 	@echo "sbcl = $(sbcl)" > $@
+	@echo "gpg = $(gpg)" >> $@
 	@echo "bindir = $(bindir)" >> $@
 	@echo "libdir = $(libdir)" >> $@
 	@echo --- $@

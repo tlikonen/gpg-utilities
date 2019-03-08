@@ -1,6 +1,6 @@
 (defpackage #:common
   (:use #:cl)
-  (:export #:*keys* #:key #:user-id #:fingerprint
+  (:export #:*gpg-program* #:*keys* #:key #:user-id #:fingerprint
            #:key-ok #:certificates-from #:certificates-for
            #:certificate #:date #:revocation
            #:get-create-key #:only-latest-certs
@@ -22,6 +22,7 @@
 
 (in-package #:common)
 
+(defvar *gpg-program* "gpg")
 (defvar *keys* (make-hash-table :test #'equal))
 
 (defclass key ()
