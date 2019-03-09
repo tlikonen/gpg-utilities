@@ -2,7 +2,7 @@
   (:use #:cl)
   (:export #:*gpg-program* #:*keys* #:key #:user-id #:fingerprint
            #:key-ok #:certificates-from #:certificates-for
-           #:certificate #:date #:revocation
+           #:certificate #:created #:expires #:revocation
            #:get-create-key #:only-latest-certs
            #:remove-old-certs
            #:certificates-for-p
@@ -34,7 +34,8 @@
 
 (defclass certificate ()
   ((key :accessor key :initarg :key)
-   (date :accessor date :initarg :date)))
+   (created :reader created :initarg :created)
+   (expires :reader expires :initarg :expires)))
 
 (defclass revocation (certificate) nil)
 
@@ -55,7 +56,7 @@
                                    (fingerprint (key cert2)))
                           (and (string= (fingerprint (key cert1))
                                         (fingerprint (key cert2)))
-                               (> (date cert1) (date cert2))))))
+                               (> (created cert1) (created cert2))))))
               :from-end t :key #'key)))
 
 (defun remove-old-certs ()

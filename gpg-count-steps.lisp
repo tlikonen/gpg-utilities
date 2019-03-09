@@ -122,7 +122,9 @@ Options:
                                      'certificate
                                      'revocation)
                                  :key key
-                                 :date (parse-time-stamp (nth 5 fields))))))))
+                                 :created (parse-time-stamp (nth 5 fields))
+                                 :expires
+                                 (parse-time-stamp (nth 6 fields))))))))
 
     (cond ((stringp key1)
            (error "The FROM key not found in the keyring."))

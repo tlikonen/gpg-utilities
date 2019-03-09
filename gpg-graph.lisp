@@ -99,12 +99,15 @@ Options:
                   key (make-instance
                        cert-type
                        :key cert-key
-                       :date (parse-time-stamp (nth 5 fields))))
+                       :created (parse-time-stamp (nth 5 fields))
+                       :expires (parse-time-stamp (nth 6 fields))))
                  (add-certificates-for
                   cert-key (make-instance
                             cert-type
                             :key key
-                            :date (parse-time-stamp (nth 5 fields)))))))))
+                            :created (parse-time-stamp (nth 5 fields))
+                            :expires
+                            (parse-time-stamp (nth 6 fields)))))))))
 
   (remove-old-certs)
 
