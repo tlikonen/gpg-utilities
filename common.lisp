@@ -3,7 +3,7 @@
   (:export #:*gpg-program* #:*keys* #:key #:user-id #:fingerprint
            #:key-ok #:certificates-from #:certificates-for
            #:certificate #:created #:expires #:revocation
-           #:get-create-key #:only-latest-certs
+           #:get-create-key
            #:clean-all-keys
            #:certificates-for-p
            #:add-certificates-from
@@ -43,28 +43,35 @@
   (or (gethash key-id *keys*)
       (setf (gethash key-id *keys*) (make-instance 'key))))
 
-(defun only-latest-certs (certs)
-  ;; Remove old certificates and keep only the latest for each key. If
-  ;; the key's latest certificate is a revocation certificate remove
-  ;; that too.
-  (delete-if (lambda (item)
-               (typep item 'revocation))
-             (delete-duplicates
-              (sort (copy-list certs)
-                    (lambda (cert1 cert2)
-                      (or (string< (fingerprint (key cert1))
-                                   (fingerprint (key cert2)))
-                          (and (string= (fingerprint (key cert1))
-                                        (fingerprint (key cert2)))
-                               (> (created cert1) (created cert2))))))
-              :from-end t :key #'key)))
+(defun remove-old-certificates (certs)
+  ;; Remove old certificates from CERTS list and keep only the latest
+  ;; for each key. Does not modify the original list.
+  (delete-duplicates
+   (sort (copy-list certs)
+         (lambda (cert1 cert2)
+           (or (string< (fingerprint (key cert1))
+                        (fingerprint (key cert2)))
+               (and (string= (fingerprint (key cert1))
+                             (fingerprint (key cert2)))
+                    (> (created cert1) (created cert2))))))
+   :from-end t :key #'key))
+
+(defun remove-unusable-certificates (certs)
+  ;; Remove expired certificates or revocation certificates from CERTS
+  ;; list. Does not modify the original list.
+  (remove-if (lambda (cert)
+               (or (typep cert 'revocation)
+                   (not (date-not-expired-p (expires cert)))))
+             certs))
 
 (defun clean-all-keys ()
   (loop :for key :being :each :hash-value :in *keys*
         :do (setf (certificates-for key)
-                  (only-latest-certs (certificates-for key)))
+                  (remove-unusable-certificates
+                   (remove-old-certificates (certificates-for key))))
             (setf (certificates-from key)
-                  (only-latest-certs (certificates-from key)))))
+                  (remove-unusable-certificates
+                   (remove-old-certificates (certificates-from key))))))
 
 (defun certificates-for-p (key cert-key)
   (member cert-key (certificates-for key) :key #'key))
