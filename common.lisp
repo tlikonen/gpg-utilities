@@ -1,10 +1,15 @@
 (defpackage #:common
   (:use #:cl)
-  (:export #:*gpg-program* #:*keys* #:key #:user-id #:fingerprint
+  (:export #:*gpg-program* #:*keys*
+           #:*accept-revoked*
+           #:*accept-expired*
+           #:key #:user-id #:fingerprint
            #:revoked
            #:expired
-           #:validp #:certificates-from #:certificates-for
+           #:certificates-from #:certificates-for
            #:certificate #:created #:expires #:revocation
+           #:validp
+           #:valid-display-p
            #:get-create-key
            #:clean-all-keys
            #:certificates-for-p
@@ -20,13 +25,14 @@
            #:*shortest-path-max-steps*
            #:study-levels
            #:shortest-paths
-           #:parse-command-line
            ))
 
 (in-package #:common)
 
 (defvar *gpg-program* "gpg")
 (defvar *keys* (make-hash-table :test #'equal))
+(defvar *accept-revoked* nil)
+(defvar *accept-expired* nil)
 
 (defclass key ()
   ((user-id :accessor user-id :initform nil)
@@ -44,6 +50,10 @@
 (defclass revocation (certificate) nil)
 
 (defun validp (key)
+  (and (or *accept-revoked* (not (revoked key)))
+       (or *accept-expired* (not (expired key)))))
+
+(defun valid-display-p (key)
   (and (not (revoked key))
        (not (expired key))))
 
@@ -214,36 +224,3 @@
         (if paths
             (values paths steps)
             (values nil nil))))))
-
-(defun parse-command-line (args)
-  (loop :with help :with unknown
-        :with arg
-        :while args
-        :if (setf arg (pop args)) :do
-
-          (cond
-            ((string= "--" arg)
-             (loop-finish))
-
-            ((and (> (length arg) 2)
-                  (string= "--" (subseq arg 0 2)))
-             (cond ((string= arg "--help")
-                    (setf help t))
-                   (t (push arg unknown))))
-
-            ((and (> (length arg) 1)
-                  (char= #\- (aref arg 0)))
-             (loop :for option :across (subseq arg 1)
-                   :do (case option
-                         (#\h (setf help t))
-                         (t (push (format nil "-~C" option) unknown)))))
-
-            (t (push arg args)
-               (loop-finish)))
-
-        :finally
-           (return
-             (values
-              (list :help help)
-              args
-              (delete-duplicates (nreverse unknown) :test #'string=)))))

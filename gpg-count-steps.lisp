@@ -23,8 +23,8 @@ keyring. If no arguments are given test all keys between each other (can
 take some time on large keyrings). If one key argument is given count
 certificate steps from that key to all other keys. If two keys are given
 count steps just between those keys. Both arguments, if given at all,
-must be 40-character key fingerprints. Revoked and expired keys are
-accepted only at the endpoints of the path.
+must be 40-character key fingerprints. By default revoked and expired
+keys are accepted only at the endpoints of the path.
 
 The output consists of lines with three fields:
 
@@ -35,7 +35,53 @@ The output consists of lines with three fields:
 
 Options:
 
+  --revoked     Accept revoked keys.
+
+  --expired     Accept expired keys.
+
   -h, --help    Print this help text.~%~%"))
+
+(defun parse-command-line (args)
+  (loop :with help
+        :with accept-revoked
+        :with accept-expired
+        :with unknown
+        :with arg
+        :while args
+        :if (setf arg (pop args)) :do
+
+          (cond
+            ((string= "--" arg)
+             (loop-finish))
+
+            ((and (> (length arg) 2)
+                  (string= "--" (subseq arg 0 2)))
+             (cond ((string= arg "--help")
+                    (setf help t))
+                   ((string= arg "--revoked")
+                    (setf accept-revoked t))
+                   ((string= arg "--expired")
+                    (setf accept-expired t))
+                   (t (push arg unknown))))
+
+            ((and (> (length arg) 1)
+                  (char= #\- (aref arg 0)))
+             (loop :for option :across (subseq arg 1)
+                   :do (case option
+                         (#\h (setf help t))
+                         (t (push (format nil "-~C" option) unknown)))))
+
+            (t (push arg args)
+               (loop-finish)))
+
+        :finally
+           (return
+             (values
+              (list :help help
+                    :accept-revoked accept-revoked
+                    :accept-expired accept-expired)
+              args
+              (delete-duplicates (nreverse unknown) :test #'string=)))))
 
 (defun main (&rest args)
   (let ((key1 nil)
@@ -48,6 +94,8 @@ Options:
       (when (getf options :help)
         (print-usage)
         (sb-ext:exit :code 0))
+      (setf *accept-revoked* (getf options :accept-revoked))
+      (setf *accept-expired* (getf options :accept-expired))
       (setf key1 (nth 0 arguments)
             key2 (nth 1 arguments)))
 
