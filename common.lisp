@@ -14,7 +14,6 @@
            #:escape-characters
            #:prepare-user-id
            #:parse-time-stamp
-           #:date-not-expired-p
            #:split-fingerprint
            #:shortest-paths #:*shortest-path-max-steps*
            #:parse-command-line
@@ -61,7 +60,7 @@
   ;; list. Does not modify the original list.
   (remove-if (lambda (cert)
                (or (typep cert 'revocation)
-                   (not (date-not-expired-p (expires cert)))))
+                   (time-stamp-expired-p (expires cert))))
              certs))
 
 (defun clean-all-keys ()
@@ -123,6 +122,8 @@
   (escape-characters string "\\" #\\))
 
 (defun parse-time-stamp (time-stamp)
+  ;; Parse GnuPG time stamp and return Lisp universal time. If the
+  ;; original time stamp is missing return nil.
   (cond ((or (string= time-stamp "")
              (string= time-stamp "0"))
          nil)
@@ -141,10 +142,8 @@
                (sec (parse-integer (subseq time-stamp 13 15))))
            (encode-universal-time sec min hour day month year 0)))))
 
-(defun date-not-expired-p (expire)
-  (let ((now (get-universal-time))
-        (date (parse-time-stamp expire)))
-    (if date (> date now) t)))
+(defun time-stamp-expired-p (time)
+  (if time (<= time (get-universal-time)) nil))
 
 (defun split-fingerprint (fingerprint)
   (loop :for i :from 4 :upto (length fingerprint) :by 4

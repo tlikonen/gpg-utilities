@@ -89,8 +89,7 @@ Options:
                         (string= "rev" (nth 0 fields)))
                     (plusp (length (nth 1 fields)))
                     (char= #\! (aref (nth 1 fields) 0))
-                    (string/= key-id (nth 4 fields))
-                    (date-not-expired-p (nth 6 fields)))
+                    (string/= key-id (nth 4 fields)))
                (let ((cert-key (get-create-key (nth 4 fields)))
                      (cert-type (if (string= "sig" (nth 0 fields))
                                     'certificate
