@@ -132,18 +132,20 @@ Options:
 
     (clean-all-keys)
 
-    (flet ((print-steps (key1 key2)
-             (format t "~A ~A ~D~%" (fingerprint key1) (fingerprint key2)
-                     (or (study-levels key1 key2) "-"))))
+    (let ((ht (make-hash-table)))
+      (flet ((print-steps (key1 key2)
+               (clrhash ht)
+               (format t "~A ~A ~D~%" (fingerprint key1) (fingerprint key2)
+                       (or (study-levels key1 key2 ht) "-"))))
 
-      (cond ((and key1 key2)
-             (print-steps key1 key2))
-            ((and key1 (not key2))
-             (loop :for key2 :being :each :hash-value :in *keys*
-                   :unless (eql key1 key2) :do
-                     (print-steps key1 key2)))
-            (t
-             (loop :for key1 :being :each :hash-value :in *keys* :do
+        (cond ((and key1 key2)
+               (print-steps key1 key2))
+              ((and key1 (not key2))
                (loop :for key2 :being :each :hash-value :in *keys*
                      :unless (eql key1 key2) :do
-                       (print-steps key1 key2))))))))
+                       (print-steps key1 key2)))
+              (t
+               (loop :for key1 :being :each :hash-value :in *keys* :do
+                 (loop :for key2 :being :each :hash-value :in *keys*
+                       :unless (eql key1 key2) :do
+                         (print-steps key1 key2)))))))))
