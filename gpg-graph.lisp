@@ -127,7 +127,7 @@ digraph \"GnuPG key graph\" {
                       "~{~A~^ ~}\\l"
                       "~{~A ~A ~A ~A ~A~^ ...\\l... ~}\\r")
                   (list (split-fingerprint (fingerprint key)))
-                  (if (key-ok key) "" ", fontcolor=\"#aaaaaa\""))
+                  (if (validp key) "" ", fontcolor=\"#aaaaaa\""))
 
           (loop :for cert :in (mapcar #'key (certificates-from key))
                 :if (user-id cert) :do

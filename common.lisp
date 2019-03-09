@@ -3,7 +3,7 @@
   (:export #:*gpg-program* #:*keys* #:key #:user-id #:fingerprint
            #:revoked
            #:expired
-           #:key-ok #:certificates-from #:certificates-for
+           #:validp #:certificates-from #:certificates-for
            #:certificate #:created #:expires #:revocation
            #:get-create-key
            #:clean-all-keys
@@ -43,7 +43,7 @@
 
 (defclass revocation (certificate) nil)
 
-(defun key-ok (key)
+(defun validp (key)
   (and (not (revoked key))
        (not (expired key))))
 
@@ -166,7 +166,7 @@
         ((levels (keys level)
            (unless (> level *shortest-path-max-steps*)
              (loop :for key :in keys
-                   :do (when (key-ok key)
+                   :do (when (validp key)
                          (setf (gethash key hash-table) level))
                        (when (eql key to-key)
                          (setf found-level level)
@@ -176,7 +176,7 @@
                      :for key :in keys
                      :do (loop :for cert :in (certificates-for key)
                                :for cert-key := (key cert)
-                               :do (when (and (or (key-ok cert-key)
+                               :do (when (and (or (validp cert-key)
                                                   (eql cert-key to-key))
                                               (not (gethash cert-key
                                                             hash-table)))
@@ -200,7 +200,7 @@
                      ((eql place to)
                       (push (reverse path) paths))
                      ((and (not (eql place from))
-                           (not (key-ok place))))
+                           (not (validp place))))
                      (t
                       (loop :for cert :in (certificates-for place)
                             :for next-key := (key cert)
