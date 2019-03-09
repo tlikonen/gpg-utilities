@@ -109,7 +109,7 @@ Options:
                             :expires
                             (parse-time-stamp (nth 6 fields)))))))))
 
-  (remove-old-certs)
+  (clean-all-keys)
 
   (format t "~
 digraph \"GnuPG key graph\" {

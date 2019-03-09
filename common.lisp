@@ -4,7 +4,7 @@
            #:key-ok #:certificates-from #:certificates-for
            #:certificate #:created #:expires #:revocation
            #:get-create-key #:only-latest-certs
-           #:remove-old-certs
+           #:clean-all-keys
            #:certificates-for-p
            #:add-certificates-from
            #:add-certificates-for
@@ -59,7 +59,7 @@
                                (> (created cert1) (created cert2))))))
               :from-end t :key #'key)))
 
-(defun remove-old-certs ()
+(defun clean-all-keys ()
   (loop :for key :being :each :hash-value :in *keys*
         :do (setf (certificates-for key)
                   (only-latest-certs (certificates-for key)))

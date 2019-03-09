@@ -131,7 +131,7 @@ Options:
           ((not (typep key2 'key))
            (error "The TO key not found in the keyring.")))
 
-    (remove-old-certs)
+    (clean-all-keys)
 
     (let ((paths (multiple-value-bind (paths steps)
                      (shortest-paths key1 key2)

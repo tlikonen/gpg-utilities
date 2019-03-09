@@ -131,7 +131,7 @@ Options:
           ((stringp key2)
            (error "The TO key not found in the keyring.")))
 
-    (remove-old-certs)
+    (clean-all-keys)
 
     (flet ((print-steps (key1 key2)
              (multiple-value-bind (paths steps)
