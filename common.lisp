@@ -34,7 +34,7 @@
    (cerfificates-for :accessor certificates-for :initform nil)))
 
 (defclass certificate ()
-  ((key :accessor key :initarg :key)
+  ((key :reader key :initarg :key)
    (created :reader created :initarg :created)
    (expires :reader expires :initarg :expires)))
 
