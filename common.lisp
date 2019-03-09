@@ -183,7 +183,8 @@
                                      (push cert-key next-keys)))
                      :finally
                         (when next-keys
-                          (levels next-keys (1+ level))))))))
+                          (levels (delete-duplicates next-keys)
+                                  (1+ level))))))))
       (setf (gethash from-key hash-table) 0)
       (levels (list from-key) 0)
       found-level)))
