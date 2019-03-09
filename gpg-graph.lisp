@@ -66,9 +66,10 @@ Options:
                (setf expect '(:fpr))
                (setf key-id (nth 4 fields))
                (setf key (get-create-key key-id))
-               (when (and (plusp (length (nth 1 fields)))
-                          (find (aref (nth 1 fields) 0) "re"))
-                 (setf (key-ok key) nil)))
+               (when (plusp (length (nth 1 fields)))
+                 (case (aref (nth 1 fields) 0)
+                   (#\r (setf (revoked key) t))
+                   (#\e (setf (expired key) t)))))
 
               ((string= "sub" (nth 0 fields))
                (setf expect nil))

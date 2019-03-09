@@ -1,6 +1,8 @@
 (defpackage #:common
   (:use #:cl)
   (:export #:*gpg-program* #:*keys* #:key #:user-id #:fingerprint
+           #:revoked
+           #:expired
            #:key-ok #:certificates-from #:certificates-for
            #:certificate #:created #:expires #:revocation
            #:get-create-key
@@ -29,7 +31,8 @@
 (defclass key ()
   ((user-id :accessor user-id :initform nil)
    (fingerprint :accessor fingerprint :initform nil)
-   (key-ok :accessor key-ok :initform t)
+   (revoked :accessor revoked :initform nil)
+   (expired :accessor expired :initform nil)
    (certificates-from :accessor certificates-from :initform nil)
    (cerfificates-for :accessor certificates-for :initform nil)))
 
@@ -39,6 +42,10 @@
    (expires :reader expires :initarg :expires)))
 
 (defclass revocation (certificate) nil)
+
+(defun key-ok (key)
+  (and (not (revoked key))
+       (not (expired key))))
 
 (defun get-create-key (key-id)
   (or (gethash key-id *keys*)
