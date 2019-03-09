@@ -15,7 +15,9 @@
            #:prepare-user-id
            #:parse-time-stamp
            #:split-fingerprint
-           #:shortest-paths #:*shortest-path-max-steps*
+           #:*shortest-path-max-steps*
+           #:study-levels
+           #:shortest-paths
            #:parse-command-line
            ))
 
@@ -151,41 +153,59 @@
 
 (defvar *shortest-path-max-steps* 20)
 
+(defun study-levels (from-key to-key &optional (hash-table (make-hash-table)))
+  (let ((found-level nil))
+    (labels
+        ((levels (keys level)
+           (unless (> level *shortest-path-max-steps*)
+             (loop :for key :in keys
+                   :do (when (key-ok key)
+                         (setf (gethash key hash-table) level))
+                       (when (eql key to-key)
+                         (setf found-level level)
+                         (setf (gethash key hash-table) level)))
+             (unless found-level
+               (loop :with next-keys
+                     :for key :in keys
+                     :do (loop :for cert :in (certificates-for key)
+                               :for cert-key := (key cert)
+                               :do (when (and (or (key-ok cert-key)
+                                                  (eql cert-key to-key))
+                                              (not (gethash cert-key
+                                                            hash-table)))
+                                     (push cert-key next-keys)))
+                     :finally
+                        (when next-keys
+                          (levels next-keys (1+ level))))))))
+      (setf (gethash from-key hash-table) 0)
+      (levels (list from-key) 0)
+      found-level)))
+
 (defun shortest-paths (from to)
   (let ((paths nil)
         ;; (calls 0)
         (studied (make-hash-table)))
 
-    (labels ((route (place path steps)
+    (labels ((routes (place path steps)
                ;; (incf calls)
                (push place path)
-               (cond ((> steps *shortest-path-max-steps*))
-                     ((> steps (gethash place studied)))
+               (cond ((> steps (gethash place studied)))
                      ((eql place to)
-                      (push (cons steps (reverse path)) paths))
+                      (push (reverse path) paths))
                      ((and (not (eql place from))
                            (not (key-ok place))))
                      (t
-                      (let ((certs-for
-                              (mapcar #'key (certificates-for place))))
-                        (loop :for next :in certs-for
-                              :for std := (gethash next studied)
-                              :do (setf (gethash next studied)
-                                        (if std
-                                            (min std (1+ steps))
-                                            (1+ steps))))
-                        (loop :for next :in certs-for
-                              :do (route next path (1+ steps))))))))
+                      (loop :for cert :in (certificates-for place)
+                            :for next-key := (key cert)
+                            :do (when (gethash next-key studied)
+                                  (routes next-key path (1+ steps))))))))
 
-      (setf (gethash from studied) 0)
-      (route from nil 0)
-      ;; (format *error-output* "Function calls: ~D~%" calls)
-      (if paths
-          (let ((steps (reduce #'min paths :key #'first)))
-            (values (mapcar #'rest (delete steps paths
-                                           :key #'first :test-not #'=))
-                    steps))
-          (values nil nil)))))
+      (let ((steps (study-levels from to studied)))
+        (when steps (routes from nil 0))
+        ;; (format *error-output* "Function calls: ~D~%" calls)
+        (if paths
+            (values paths steps)
+            (values nil nil))))))
 
 (defun parse-command-line (args)
   (loop :with help :with unknown

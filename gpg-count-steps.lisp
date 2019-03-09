@@ -133,11 +133,8 @@ Options:
     (clean-all-keys)
 
     (flet ((print-steps (key1 key2)
-             (multiple-value-bind (paths steps)
-                 (shortest-paths key1 key2)
-               (declare (ignore paths))
-               (format t "~A ~A ~D~%" (fingerprint key1) (fingerprint key2)
-                       (or steps "-")))))
+             (format t "~A ~A ~D~%" (fingerprint key1) (fingerprint key2)
+                     (or (study-levels key1 key2) "-"))))
 
       (cond ((and key1 key2)
              (print-steps key1 key2))
