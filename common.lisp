@@ -146,9 +146,11 @@
 
 (defun shortest-paths (from to)
   (let ((paths nil)
+        ;; (calls 0)
         (studied (make-hash-table)))
 
     (labels ((route (place path steps)
+               ;; (incf calls)
                (push place path)
                (cond ((> steps *shortest-path-max-steps*))
                      ((> steps (gethash place studied)))
@@ -170,6 +172,7 @@
 
       (setf (gethash from studied) 0)
       (route from nil 0)
+      ;; (format *error-output* "Function calls: ~D~%" calls)
       (if paths
           (let ((steps (reduce #'min paths :key #'first)))
             (values (mapcar #'rest (delete steps paths
