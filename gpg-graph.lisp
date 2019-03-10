@@ -72,7 +72,7 @@ Options:
           :do (format *error-output* "Unknown option \"~A\".~%" u))
     (when (getf options :help)
       (print-usage)
-      (sb-ext:exit :code 0))
+      (exit-program 0))
     (setf args arguments))
 
   (clrhash *keys*)

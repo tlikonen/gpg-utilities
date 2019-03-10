@@ -39,8 +39,12 @@ executed automatically if this program is started with any of the
 following names: gpg-tofu, gpg-graph, gpg-cert-path or gpg-count-steps.
 
 Option \"-h\" or \"--help\" for a subcommand prints help on that
-specific subcommand.~%~%" program)))))
+specific subcommand.~%~%" program))))
 
+        (common:exit-program 0))
+
+    (common:exit-program (c)
+      (sb-ext:exit :code (common:code c)))
     (sb-int:simple-stream-error () nil)
     (sb-sys:interactive-interrupt ()
       (terpri)

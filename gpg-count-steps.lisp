@@ -93,7 +93,7 @@ Options:
             :do (format *error-output* "Unknown option \"~A\".~%" u))
       (when (getf options :help)
         (print-usage)
-        (sb-ext:exit :code 0))
+        (exit-program 0))
       (setf *accept-revoked* (getf options :accept-revoked))
       (setf *accept-expired* (getf options :accept-expired))
       (setf key1 (nth 0 arguments)

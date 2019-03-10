@@ -3,6 +3,7 @@
   (:export #:*gpg-program* #:*keys*
            #:*accept-revoked*
            #:*accept-expired*
+           #:exit-program #:code
            #:key #:user-id #:fingerprint
            #:revoked
            #:expired
@@ -33,6 +34,12 @@
 (defvar *keys* (make-hash-table :test #'equal))
 (defvar *accept-revoked* nil)
 (defvar *accept-expired* nil)
+
+(define-condition exit-program ()
+  ((code :reader code :initarg :code :type integer)))
+
+(defun exit-program (exit-code)
+  (error 'exit-program :code exit-code))
 
 (defclass key ()
   ((user-id :accessor user-id :initform nil)
