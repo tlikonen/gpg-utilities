@@ -113,6 +113,9 @@ Options:
 
     (clrhash *keys*)
 
+    (format *error-output* "Reading data from GnuPG...")
+    (force-output *error-output*)
+
     (with-open-stream
         (gpg (sb-ext:process-output
               (sb-ext:run-program *gpg-program*
@@ -175,12 +178,15 @@ Options:
                                  :expires
                                  (parse-time-stamp (nth 6 fields))))))))
 
+    (clean-all-keys)
+
+    (format *error-output* " done.~%")
+    (force-output *error-output*)
+
     (cond ((stringp key1)
            (error "The FROM key not found in the keyring."))
           ((stringp key2)
            (error "The TO key not found in the keyring.")))
-
-    (clean-all-keys)
 
     (let ((ht (make-hash-table)))
       (flet ((print-steps (key1 key2)

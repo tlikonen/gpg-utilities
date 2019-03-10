@@ -77,6 +77,9 @@ Options:
 
   (clrhash *keys*)
 
+  (format *error-output* "Reading data from GnuPG...")
+  (force-output *error-output*)
+
   (with-open-stream
       (gpg (sb-ext:process-output
             (sb-ext:run-program *gpg-program*
@@ -143,6 +146,9 @@ Options:
                             (parse-time-stamp (nth 6 fields)))))))))
 
   (clean-all-keys)
+
+  (format *error-output* " done.~%")
+  (force-output *error-output*)
 
   (format t "~
 digraph \"GnuPG key graph\" {

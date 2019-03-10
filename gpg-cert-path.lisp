@@ -113,6 +113,9 @@ Options:
 
     (clrhash *keys*)
 
+    (format *error-output* "Reading data from GnuPG...")
+    (force-output *error-output*)
+
     (with-open-stream
         (gpg (sb-ext:process-output
               (sb-ext:run-program *gpg-program*
@@ -175,12 +178,15 @@ Options:
                                  :expires
                                  (parse-time-stamp (nth 6 fields))))))))
 
+    (clean-all-keys)
+
+    (format *error-output* " done.~%")
+    (force-output *error-output*)
+
     (cond ((not (typep key1 'key))
            (error "The FROM key not found in the keyring."))
           ((not (typep key2 'key))
            (error "The TO key not found in the keyring.")))
-
-    (clean-all-keys)
 
     (let ((paths (multiple-value-bind (paths steps)
                      (shortest-paths key1 key2)
