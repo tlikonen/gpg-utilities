@@ -147,7 +147,7 @@ Options:
                                        "--" args)
                                 :search t :wait nil
                                 :output :stream
-                                :error *error-output*)))
+                                :error nil)))
 
     (loop :with expect :with want-empty-line
           :for line := (read-line gpg nil)
