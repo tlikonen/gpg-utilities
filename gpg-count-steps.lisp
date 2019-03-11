@@ -6,11 +6,11 @@
 ;; WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-(defpackage #:gpg-count-steps
+(defpackage #:count-steps
   (:use #:cl #:common)
   (:export #:main))
 
-(in-package #:gpg-count-steps)
+(in-package #:count-steps)
 
 (defun print-usage ()
   (format t "~

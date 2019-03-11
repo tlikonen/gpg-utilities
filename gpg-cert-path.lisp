@@ -6,11 +6,11 @@
 ;; WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-(defpackage #:gpg-cert-path
+(defpackage #:cert-path
   (:use #:cl #:common)
   (:export #:main))
 
-(in-package #:gpg-cert-path)
+(in-package #:cert-path)
 
 (defun print-usage ()
   (format t "~

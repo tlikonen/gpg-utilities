@@ -6,11 +6,11 @@
 ;; WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-(defpackage #:gpg-graph
+(defpackage #:graph
   (:use #:cl #:common)
   (:export #:main))
 
-(in-package #:gpg-graph)
+(in-package #:graph)
 
 (defun print-usage ()
   (format t "~

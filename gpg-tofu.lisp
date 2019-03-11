@@ -6,11 +6,11 @@
 ;; WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-(defpackage #:gpg-tofu
+(defpackage #:tofu
   (:use #:cl #:common)
   (:export #:main))
 
-(in-package #:gpg-tofu)
+(in-package #:tofu)
 
 (defun format-user-id (string)
   ;; This should actually decode C language string.
