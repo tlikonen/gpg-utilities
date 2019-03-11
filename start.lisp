@@ -4,6 +4,17 @@
 
 (in-package #:start)
 
+(defun print-usage (program)
+  (format t "~
+Usage: ~A <subcommand> [options or arguments]
+
+Subcommands: tofu, graph, cert-path and count-steps. A subcommand is
+executed automatically if this program is started with any of the
+following names: gpg-tofu, gpg-graph, gpg-cert-path or gpg-count-steps.
+
+Option \"-h\" or \"--help\" for a subcommand prints help on that
+specific subcommand.~%~%" program))
+
 (defun start ()
   (handler-case
       (let ((program (sb-ext:native-pathname (first sb-ext:*posix-argv*)))
@@ -30,16 +41,7 @@
              (apply #'gpg-cert-path:main (rest args)))
             ((equal command "count-steps")
              (apply #'gpg-count-steps:main (rest args)))
-            (t
-             (format t "~
-Usage: ~A <subcommand> [options or arguments]
-
-Subcommands: tofu, graph, cert-path and count-steps. A subcommand is
-executed automatically if this program is started with any of the
-following names: gpg-tofu, gpg-graph, gpg-cert-path or gpg-count-steps.
-
-Option \"-h\" or \"--help\" for a subcommand prints help on that
-specific subcommand.~%~%" program))))
+            (t (print-usage program))))
 
         (common:exit-program 0))
 
