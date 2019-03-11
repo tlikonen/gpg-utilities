@@ -1,5 +1,3 @@
-;; gpg-count-steps - Count certificate steps between gpg keys
-;;
 ;; Author: Teemu Likonen <tlikonen@iki.fi>
 ;;
 ;; No restrictions for use: this program is placed in the public domain.

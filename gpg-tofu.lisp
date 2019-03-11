@@ -1,5 +1,3 @@
-;; gpg-tofu - Display TOFU statistics for GnuPG public keys
-;;
 ;; Author: Teemu Likonen <tlikonen@iki.fi>
 ;;
 ;; No restrictions for use: this program is placed in the public domain.
