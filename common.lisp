@@ -1,3 +1,11 @@
+;; Author: Teemu Likonen <tlikonen@iki.fi>
+;;
+;; No restrictions for use: this program is placed in the public domain.
+;;
+;; This program is distributed in the hope that it will be useful, but
+;; WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
 (defpackage #:common
   (:use #:cl)
   (:export #:*gpg-program* #:*keys*
