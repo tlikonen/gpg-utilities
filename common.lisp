@@ -9,8 +9,8 @@
 (defpackage #:common
   (:use #:cl)
   (:export #:*gpg-program* #:*keys*
-           #:*accept-revoked*
-           #:*accept-expired*
+           #:*options*
+           #:optionp
            #:exit-program #:code
            #:key #:user-id #:fingerprint
            #:revoked
@@ -40,8 +40,10 @@
 
 (defvar *gpg-program* "gpg")
 (defvar *keys* (make-hash-table :test #'equal))
-(defvar *accept-revoked* nil)
-(defvar *accept-expired* nil)
+(defvar *options* nil)
+
+(defun optionp (option-symbol)
+  (assoc option-symbol *options*))
 
 (define-condition exit-program ()
   ((code :reader code :initarg :code :type integer)))
@@ -65,8 +67,8 @@
 (defclass revocation (certificate) nil)
 
 (defun validp (key)
-  (and (or *accept-revoked* (not (revoked key)))
-       (or *accept-expired* (not (expired key)))))
+  (and (or (optionp :revoked) (not (revoked key)))
+       (or (optionp :expired) (not (expired key)))))
 
 (defun valid-display-p (key)
   (and (not (revoked key))

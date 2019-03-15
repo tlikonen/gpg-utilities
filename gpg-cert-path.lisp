@@ -49,8 +49,7 @@ Options:
       (when (assoc :help options)
         (print-usage)
         (exit-program 0))
-      (setf *accept-revoked* (assoc :revoked options))
-      (setf *accept-expired* (assoc :expired options))
+      (setf *options* options)
       (setf key1 (nth 0 arguments)
             key2 (nth 1 arguments)))
 
