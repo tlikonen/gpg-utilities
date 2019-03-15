@@ -39,61 +39,23 @@ Options:
 
   -h, --help    Print this help text.~%~%"))
 
-(defun parse-command-line (args)
-  (loop :with help
-        :with accept-revoked
-        :with accept-expired
-        :with unknown
-        :with arg
-        :while args
-        :if (setf arg (pop args)) :do
-
-          (cond
-            ((string= "--" arg)
-             (loop-finish))
-
-            ((and (> (length arg) 2)
-                  (string= "--" (subseq arg 0 2)))
-             (cond ((string= arg "--help")
-                    (setf help t))
-                   ((string= arg "--revoked")
-                    (setf accept-revoked t))
-                   ((string= arg "--expired")
-                    (setf accept-expired t))
-                   (t (push arg unknown))))
-
-            ((and (> (length arg) 1)
-                  (char= #\- (aref arg 0)))
-             (loop :for option :across (subseq arg 1)
-                   :do (case option
-                         (#\h (setf help t))
-                         (t (push (format nil "-~C" option) unknown)))))
-
-            (t (push arg args)
-               (loop-finish)))
-
-        :finally
-           (return
-             (values
-              (list :help help
-                    :accept-revoked accept-revoked
-                    :accept-expired accept-expired)
-              args
-              (delete-duplicates (nreverse unknown) :test #'string=)))))
-
 (defun main (&rest args)
   (let ((key1 nil)
         (key2 nil))
 
     (multiple-value-bind (options arguments unknown)
-        (parse-command-line args)
-      (loop :for u :in unknown
-            :do (format *error-output* "Unknown option \"~A\".~%" u))
-      (when (getf options :help)
+        (just-getopt-parser:getopt args '((:help #\h)
+                                          (:help "help")
+                                          (:revoked "revoked")
+                                          (:expired "expired"))
+                                   :error-on-unknown-option t
+                                   :error-on-argument-not-allowed t)
+      (declare (ignore unknown))
+      (when (assoc :help options)
         (print-usage)
         (exit-program 0))
-      (setf *accept-revoked* (getf options :accept-revoked))
-      (setf *accept-expired* (getf options :accept-expired))
+      (setf *accept-revoked* (assoc :revoked options))
+      (setf *accept-expired* (assoc :expired options))
       (setf key1 (nth 0 arguments)
             key2 (nth 1 arguments)))
 

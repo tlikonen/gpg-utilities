@@ -3,7 +3,8 @@ libdir = $(HOME)/.local/lib
 sbcl = sbcl
 gpg = gpg
 src = gpg-utilities.asd common.lisp start.lisp \
-	gpg-tofu.lisp gpg-graph.lisp gpg-cert-path.lisp gpg-count-steps.lisp
+	gpg-tofu.lisp gpg-graph.lisp gpg-cert-path.lisp gpg-count-steps.lisp \
+	just-getopt-parser.lisp
 symlinks = gpg-tofu gpg-graph gpg-cert-path gpg-count-steps
 conf = config.mk
 
