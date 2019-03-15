@@ -91,6 +91,9 @@
                     (> (created cert1) (created cert2))))))
    :from-end t :key #'key))
 
+(defun time-stamp-expired-p (time)
+  (if time (<= time (get-universal-time)) nil))
+
 (defun remove-unusable-certificates (certs)
   ;; Remove expired certificates or revocation certificates from CERTS
   ;; list. Does not modify the original list.
@@ -177,9 +180,6 @@
                (min (parse-integer (subseq time-stamp 11 13)))
                (sec (parse-integer (subseq time-stamp 13 15))))
            (encode-universal-time sec min hour day month year 0)))))
-
-(defun time-stamp-expired-p (time)
-  (if time (<= time (get-universal-time)) nil))
 
 (defun split-fingerprint (fingerprint)
   (loop :for i :from 4 :upto (length fingerprint) :by 4
