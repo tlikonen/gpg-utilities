@@ -157,9 +157,10 @@ Options:
           (edges nil))
 
       (unless paths
-        (error "Couldn't find a path between the keys.~%~
+        (format *error-output* "Couldn't find a path between the keys.~%~
         Maybe there is no connection or at least not in this keyring~%~
-        or within the maximum steps (~D).~%" *shortest-path-max-steps*))
+        or within the maximum steps (~D).~%" *shortest-path-max-steps*)
+        (exit-program 0))
 
       (loop :for path :in paths
             :do (loop :for (key . rest) :on path
