@@ -34,6 +34,8 @@
            #:*shortest-path-max-steps*
            #:study-levels
            #:shortest-paths
+           #:print-graphviz-key-node
+           #:print-graphviz-edge
            ))
 
 (in-package #:common)
@@ -241,3 +243,21 @@
         (if paths
             (values paths steps)
             (values nil nil))))))
+
+(defun print-graphviz-key-node (key &key (indent 0)
+                                      (stream *standard-output*))
+  (format stream "~V,2T\"~A\"~%~V,2T  [label=\"~A\\l~?\"~A];~%"
+          indent (fingerprint key) indent (user-id key)
+          (if (>= (length (user-id key)) 55)
+              "~{~A~^ ~}\\l"
+              "~{~A ~A ~A ~A ~A~^ ...\\l... ~}\\r")
+          (list (split-fingerprint (fingerprint key)))
+          (if (valid-display-p key)
+              ""
+              ", fontcolor=\"#aaaaaa\"")))
+
+(defun print-graphviz-edge (from-key to-key &key (indent 0) both
+                                              (stream *standard-output*))
+  (format stream "~V,2T\"~A\" -> \"~A\" [dir=~A];~%"
+          indent (fingerprint from-key) (fingerprint to-key)
+          (if both "both" "forward")))

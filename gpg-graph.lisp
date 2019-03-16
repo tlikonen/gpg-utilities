@@ -127,21 +127,13 @@ digraph \"GnuPG key graph\" {
   (loop :for key :being :each :hash-value :in *keys*
         :for user-id := (user-id key)
         :if user-id :do
-          (format t "  \"~A\"~%    [label=\"~A\\l~?\"~A];~%"
-                  (fingerprint key) user-id
-                  (if (>= (length user-id) 55)
-                      "~{~A~^ ~}\\l"
-                      "~{~A ~A ~A ~A ~A~^ ...\\l... ~}\\r")
-                  (list (split-fingerprint (fingerprint key)))
-                  (if (valid-display-p key) "" ", fontcolor=\"#aaaaaa\""))
-
+          (print-graphviz-key-node key :indent 2)
           (loop :for cert :in (mapcar #'key (certificates-from key))
                 :if (user-id cert) :do
-                  (format t "    \"~A\" -> \"~A\" [dir=~A];~%"
-                          (fingerprint cert) (fingerprint key)
-                          (if (certificates-for-p key cert)
-                              (progn (remove-certificates-from cert key)
-                                     "both")
-                              "forward"))))
+                  (print-graphviz-edge cert key
+                                       :indent 4
+                                       :both (when (certificates-for-p key cert)
+                                               (remove-certificates-from cert key)
+                                               t))))
 
   (format t "}~%"))

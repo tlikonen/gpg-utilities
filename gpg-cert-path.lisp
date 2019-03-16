@@ -179,18 +179,9 @@ digraph \"GnuPG certificate path\" {
 ")
 
       (loop :for key :in keys
-            :do (format t "  \"~A\"~%    [label=\"~A\\l~?\"~A];~%"
-                        (fingerprint key) (user-id key)
-                        (if (>= (length (user-id key)) 55)
-                            "~{~A~^ ~}\\l"
-                            "~{~A ~A ~A ~A ~A~^ ...\\l... ~}\\r")
-                        (list (split-fingerprint (fingerprint key)))
-                        (if (valid-display-p key)
-                            ""
-                            ", fontcolor=\"#aaaaaa\"")))
+            :do (print-graphviz-key-node key :indent 2))
 
       (loop :for (key1 . key2) :in edges
-            :do (format t "  \"~A\" -> \"~A\";~%"
-                        (fingerprint key1) (fingerprint key2)))
+            :do (print-graphviz-edge key1 key2 :indent 2))
 
       (format t "}~%"))))
