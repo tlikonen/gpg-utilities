@@ -116,17 +116,17 @@ configuration as during installation. You can clean build files with
 [Debian]:   https://www.debian.org/
 
 
-Author and License
-------------------
+License and Source Code
+-----------------------
 
 Author: Teemu Likonen <<tlikonen@iki.fi>>
 
 PGP: [4E10 55DC 84E9 DFF6 13D7 8557 719D 69D3 2453 9450][PGP]
 
-No restrictions for use: this program is placed in the public domain.
+License: [Creative Commons CC0][CC0] (public domain dedication)
 
-This program is distributed in the hope that it will be useful, but
-WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+The source code repository:
+<https://github.com/tlikonen/cl-just-getopt-parser>
 
 [PGP]: http://www.iki.fi/tlikonen/pgp-key.asc
+[CC0]: https://creativecommons.org/publicdomain/zero/1.0/legalcode

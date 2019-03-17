@@ -1,7 +1,7 @@
 (defsystem :gpg-utilities
   :description "Utilities for GnuPG security tool"
   :author "Teemu Likonen <tlikonen@iki.fi>"
-  :licence "Public domain"
+  :licence "Creative Commons CC0 (public domain dedication)"
   :components ((:file "common")
                (:file "just-getopt-parser")
                (:file "gpg-tofu"
