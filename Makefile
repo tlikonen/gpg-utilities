@@ -10,7 +10,7 @@ conf = config.mk
 
 -include $(conf)
 
-all: gpg-utilities $(symlinks)
+all: $(symlinks)
 
 gpg-utilities: $(src)
 	$(sbcl) --script make-image.lisp '$(gpg)'
