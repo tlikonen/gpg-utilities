@@ -41,13 +41,12 @@ specific subcommand.~%~%" program))
            (format *error-output* "~&~A~%" c)
            (sb-ext:exit :code 1))))
 
-    (let ((program (sb-ext:native-pathname (first sb-ext:*posix-argv*)))
+    (let ((program
+            (let ((path (sb-ext:native-pathname (first sb-ext:*posix-argv*))))
+              (sb-ext:native-namestring
+               (make-pathname :name (pathname-name path)
+                              :type (pathname-type path)))))
           (args (rest sb-ext:*posix-argv*)))
-      (setf program (concatenate 'string (pathname-name program)
-                                 (let ((type (pathname-type program)))
-                                   (if type
-                                       (concatenate 'string "." type)
-                                       ""))))
 
       (cond
         ((equal program "gpg-tofu") (push "tofu" args))
