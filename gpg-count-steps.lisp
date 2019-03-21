@@ -40,14 +40,13 @@ Options:
   (let ((key1 nil)
         (key2 nil))
 
-    (multiple-value-bind (options arguments unknown)
+    (multiple-value-bind (options arguments)
         (just-getopt-parser:getopt args '((:help #\h)
                                           (:help "help")
                                           (:revoked "revoked")
                                           (:expired "expired"))
                                    :error-on-unknown-option t
                                    :error-on-argument-not-allowed t)
-      (declare (ignore unknown))
       (when (assoc :help options)
         (print-usage)
         (exit-program 0))
