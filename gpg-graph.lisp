@@ -28,11 +28,16 @@ Options:
   -h, --help    Print this help text.~%~%"))
 
 (defun main (&rest args)
-  (multiple-value-bind (options arguments)
+  (multiple-value-bind (options arguments unknown)
       (just-getopt-parser:getopt args '((:help #\h)
                                         (:help "help"))
                                  :error-on-unknown-option t
                                  :error-on-argument-not-allowed t)
+
+    (when unknown
+      (format *error-output* "Use option \"-h\" for help.~%")
+      (exit-program 1))
+
     (when (assoc :help options)
       (print-usage)
       (exit-program 0))
