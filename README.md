@@ -4,8 +4,8 @@ GPG Utilities
 **Utilities for [GnuPG][] security tool**
 
 
-Programs
---------
+The Programs
+------------
 
 ### GPG Tofu
 
