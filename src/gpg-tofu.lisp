@@ -9,6 +9,8 @@
 
 (in-package #:tofu)
 
+(defvar *program* "gpg-tofu")
+
 (defun format-user-id (string)
   ;; This should actually decode C language string.
   (string-replace string "\\x3a" ":"))
@@ -79,7 +81,7 @@
 
 (defun print-usage ()
   (format t "~
-Usage: gpg-tofu [options] [--] [key1 ...]
+Usage: ~A [options] [--] [key1 ...]
 
 Print \"trust on first use\" (TOFU) statistics for GnuPG keys. The
 arguments can be any valid references to GnuPG keys. See gpg(1) manual
@@ -87,7 +89,8 @@ for help on that topic.
 
 Options:
 
-  -h, --help    Print this help text.~%~%"))
+  -h, --help    Print this help text.~%~%"
+          *program*))
 
 (defun main (&rest args)
   (multiple-value-bind (options arguments unknown)

@@ -9,9 +9,11 @@
 
 (in-package #:cert-path)
 
+(defvar *program* "gpg-cert-path")
+
 (defun print-usage ()
   (format t "~
-Usage: gpg-cert-path [options] [--] <from-key> <to-key>
+Usage: ~A [options] [--] <from-key> <to-key>
 
 Find the shortest certificate path(s) between two GnuPG keys. The output
 is data for Graphviz which can draw an image of certificate path. Both
@@ -29,7 +31,8 @@ Options:
 
   --expired     Accept expired keys.
 
-  -h, --help    Print this help text.~%~%"))
+  -h, --help    Print this help text.~%~%"
+          *program*))
 
 (defun main (&rest args)
   (let ((key1 nil)

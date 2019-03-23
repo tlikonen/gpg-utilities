@@ -9,9 +9,11 @@
 
 (in-package #:graph)
 
+(defvar *program* "gpg-graph")
+
 (defun print-usage ()
   (format t "~
-Usage: gpg-graph [options] [--] [key1 ...]
+Usage: ~A [options] [--] [key1 ...]
 
 Find connections between GnuPG keys based on certificates (key
 signatures) and output data for Graphviz which can draw a web of trust
@@ -25,7 +27,8 @@ use different algorithms for drawing nodes and edges. Example:
 
 Options:
 
-  -h, --help    Print this help text.~%~%"))
+  -h, --help    Print this help text.~%~%"
+          *program*))
 
 (defun main (&rest args)
   (multiple-value-bind (options arguments unknown)

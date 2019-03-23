@@ -9,9 +9,11 @@
 
 (in-package #:count-steps)
 
+(defvar *program* "gpg-count-steps")
+
 (defun print-usage ()
   (format t "~
-Usage: gpg-count-steps [options] [--] [from-key [to-key]]
+Usage: ~A [options] [--] [from-key [to-key]]
 
 Count the steps of the shortest certificate path between two keys in the
 keyring. If no arguments are given test all keys between each other (can
@@ -34,7 +36,8 @@ Options:
 
   --expired     Accept expired keys.
 
-  -h, --help    Print this help text.~%~%"))
+  -h, --help    Print this help text.~%~%"
+          *program*))
 
 (defun main (&rest args)
   (let ((key1 nil)
