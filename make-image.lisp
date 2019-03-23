@@ -3,7 +3,7 @@
 (asdf:initialize-source-registry
  (list :source-registry
        :ignore-inherited-configuration
-       (list :directory *default-pathname-defaults*)))
+       (list :directory (merge-pathnames "src/"))))
 (asdf:disable-output-translations)
 (asdf:load-system "gpg-utilities")
 (when (nth 1 sb-ext:*posix-argv*)
