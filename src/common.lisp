@@ -134,7 +134,7 @@
         :finally (return (nreverse items))))
 
 (defun unescape-user-id (string)
-  (c-strings:unescape-c-string string))
+  (remove-if-not #'graphic-char-p (c-strings:unescape-c-string string)))
 
 (defun parse-time-stamp (time-stamp)
   ;; Parse GnuPG time stamp and return Lisp universal time. If the
