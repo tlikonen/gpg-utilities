@@ -12,5 +12,6 @@
                                "gpg-cert-path"
                                "gpg-count-steps"
                                "just-getopt-parser"))
-   (:file "common")
-   (:file "just-getopt-parser")))
+   (:file "common" :depends-on ("c-strings"))
+   (:file "just-getopt-parser")
+   (:file "c-strings")))

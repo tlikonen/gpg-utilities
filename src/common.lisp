@@ -133,23 +133,8 @@
                 (loop-finish))
         :finally (return (nreverse items))))
 
-(defun string-replace (string search replace)
-  (assert (plusp (length search)) (search)
-          "Can't search for zero length SEARCH string.")
-  (with-output-to-string (out)
-    (loop :with length-search := (length search)
-          :for pos := 0 :then (+ find length-search)
-          :for find := (search search string :start2 pos)
-          :if find :do
-            (princ (subseq string pos find) out)
-            (princ replace out)
-          :else :do
-            (princ (subseq string pos) out)
-            (loop-finish))))
-
 (defun unquote-user-id (string)
-  ;; This should actually decode C language string.
-  (setf string (string-replace string "\\x3a" ":")))
+  (c-strings:unescape-c-string string))
 
 (defun parse-time-stamp (time-stamp)
   ;; Parse GnuPG time stamp and return Lisp universal time. If the
