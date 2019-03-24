@@ -58,6 +58,7 @@ Options:
       (when (assoc :help options)
         (print-usage)
         (exit-program 0))
+
       (setf *options* options)
       (setf key1 (nth 0 arguments)
             key2 (nth 1 arguments)))
@@ -93,8 +94,8 @@ Options:
       (loop :with key-id :with key :with expect
             :for line := (read-line gpg nil)
             :for fields := (if line (split-colon-string line))
-
             :while line :do
+
               (cond
                 ((string= "pub" (nth 0 fields))
                  (setf expect '(:fpr))

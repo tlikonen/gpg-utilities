@@ -44,6 +44,7 @@ Options:
     (when (assoc :help options)
       (print-usage)
       (exit-program 0))
+
     (setf args arguments))
 
   (clrhash *keys*)
@@ -66,8 +67,8 @@ Options:
     (loop :with key-id :with key :with expect
           :for line := (read-line gpg nil)
           :for fields := (if line (split-colon-string line))
-
           :while line :do
+
             (cond
               ((string= "pub" (nth 0 fields))
                (setf expect '(:fpr))

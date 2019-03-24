@@ -106,6 +106,7 @@ Options:
     (when (assoc :help options)
       (print-usage)
       (exit-program 0))
+
     (setf args arguments))
 
   (with-open-stream

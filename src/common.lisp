@@ -197,6 +197,7 @@
                        (when (eql key to-key)
                          (setf found-level level)
                          (setf (gethash key hash-table) level)))
+
              (unless found-level
                (loop :with next-keys
                      :for key :in keys
@@ -211,6 +212,7 @@
                         (when next-keys
                           (levels (delete-duplicates next-keys)
                                   (1+ level))))))))
+
       (setf (gethash from-key hash-table) 0)
       (levels (list from-key) 0)
       found-level)))
