@@ -23,7 +23,6 @@
            #:add-certificates-for
            #:remove-certificates-from
            #:split-colon-string
-           #:string-replace
            #:escape-characters
            #:unescape-user-id
            #:parse-time-stamp
