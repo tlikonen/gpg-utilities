@@ -25,7 +25,7 @@
            #:split-colon-string
            #:string-replace
            #:escape-characters
-           #:prepare-user-id
+           #:unquote-user-id
            #:parse-time-stamp
            #:split-fingerprint
            #:*shortest-path-max-steps*
@@ -147,17 +147,9 @@
             (princ (subseq string pos) out)
             (loop-finish))))
 
-(defun escape-characters (string esc-chars esc)
-  (with-output-to-string (out)
-    (loop :for char :across string
-          :do (when (find char esc-chars)
-                (princ esc out))
-              (princ char out))))
-
-(defun prepare-user-id (string)
+(defun unquote-user-id (string)
   ;; This should actually decode C language string.
-  (setf string (string-replace string "\\x3a" ":"))
-  (escape-characters string "\\" #\\))
+  (setf string (string-replace string "\\x3a" ":")))
 
 (defun parse-time-stamp (time-stamp)
   ;; Parse GnuPG time stamp and return Lisp universal time. If the
@@ -243,10 +235,21 @@
             (values paths steps)
             (values nil nil))))))
 
+(defun escape-characters (string esc-chars esc)
+  (with-output-to-string (out)
+    (loop :for char :across string
+          :do (when (find char esc-chars)
+                (princ esc out))
+              (princ char out))))
+
+(defun escape-graphviz-label (string)
+  (escape-characters string "\\" #\\))
+
 (defun print-graphviz-key-node (key &key (indent 0)
                                       (stream *standard-output*))
   (format stream "~V,2T\"~A\"~%~V,2T  [label=\"~A\\l~?\"~A];~%"
-          indent (fingerprint key) indent (user-id key)
+          indent (fingerprint key) indent
+          (escape-graphviz-label (user-id key))
           (if (>= (length (user-id key)) 55)
               "~{~A~^ ~}\\l"
               "~{~A ~A ~A ~A ~A~^ ...\\l... ~}\\r")

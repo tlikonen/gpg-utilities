@@ -11,10 +11,6 @@
 
 (defvar *program* "gpg-tofu")
 
-(defun format-user-id (string)
-  ;; This should actually decode C language string.
-  (string-replace string "\\x3a" ":"))
-
 (defun format-time-stamp (universal-time)
   (multiple-value-bind (second minute hour date month year
                         day daylight-p zone)
@@ -145,7 +141,7 @@ Options:
                (setf expect '(:tfs :uid))
                (echo "uid [~8A] ~A~%"
                      (format-validity (nth 1 fields) 8)
-                     (format-user-id (nth 9 fields))))
+                     (unquote-user-id (nth 9 fields))))
 
               ((and (member :tfs expect)
                     (string= "tfs" (nth 0 fields))

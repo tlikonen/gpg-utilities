@@ -91,7 +91,7 @@ Options:
                     (string= "uid" (nth 0 fields))
                     (not (user-id key)))
                (setf expect '(:sig))
-               (setf (user-id key) (prepare-user-id (nth 9 fields))))
+               (setf (user-id key) (unquote-user-id (nth 9 fields))))
 
               ((and (member :sig expect)
                     (or (string= "sig" (nth 0 fields))
