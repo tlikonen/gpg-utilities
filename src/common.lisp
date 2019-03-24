@@ -25,7 +25,7 @@
            #:split-colon-string
            #:string-replace
            #:escape-characters
-           #:unquote-user-id
+           #:unescape-user-id
            #:parse-time-stamp
            #:split-fingerprint
            #:*shortest-path-max-steps*
@@ -133,7 +133,7 @@
                 (loop-finish))
         :finally (return (nreverse items))))
 
-(defun unquote-user-id (string)
+(defun unescape-user-id (string)
   (c-strings:unescape-c-string string))
 
 (defun parse-time-stamp (time-stamp)

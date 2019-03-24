@@ -141,7 +141,7 @@ Options:
                (setf expect '(:tfs :uid))
                (echo "uid [~8A] ~A~%"
                      (format-validity (nth 1 fields) 8)
-                     (unquote-user-id (nth 9 fields))))
+                     (unescape-user-id (nth 9 fields))))
 
               ((and (member :tfs expect)
                     (string= "tfs" (nth 0 fields))
