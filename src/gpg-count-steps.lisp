@@ -67,8 +67,7 @@ Options:
           :if (and key
                    (not (and (= 40 (length key))
                              (every (lambda (char)
-                                      (or (digit-char-p char)
-                                          (find (char-upcase char) "ABCDEF")))
+                                      (digit-char-p char 16))
                                     key))))
             :do (error "Invalid arguments. See \"-h\" for help."))
 
