@@ -46,9 +46,9 @@ Options:
                                    :error-on-unknown-option t
                                    :error-on-argument-not-allowed t)
 
-    (when unknown
-      (format *error-output* "Use option \"-h\" for help.~%")
-      (exit-program 1))
+      (when unknown
+        (format *error-output* "Use option \"-h\" for help.~%")
+        (exit-program 1))
 
       (when (assoc :help options)
         (print-usage)
