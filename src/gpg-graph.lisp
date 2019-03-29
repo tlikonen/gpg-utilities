@@ -31,21 +31,14 @@ Options:
           *program*))
 
 (defun main (&rest args)
-  (multiple-value-bind (options arguments unknown)
-      (just-getopt-parser:getopt args '((:help #\h)
-                                        (:help "help"))
-                                 :error-on-unknown-option t
-                                 :error-on-argument-not-allowed t)
+  (getopt-store args '((:help #\h)
+                       (:help "help"))
+                :error-on-unknown-option t
+                :error-on-argument-not-allowed t)
 
-    (when unknown
-      (format *error-output* "Use option \"-h\" for help.~%")
-      (exit-program 1))
-
-    (when (assoc :help options)
-      (print-usage)
-      (exit-program 0))
-
-    (setf args arguments))
+  (when (optionp :help)
+    (print-usage)
+    (exit-program 0))
 
   (clrhash *keys*)
 
@@ -59,7 +52,7 @@ Options:
                                        "--with-colons"
                                        "--with-fingerprint"
                                        "--check-signatures"
-                                       "--" args)
+                                       "--" (arguments))
                                 :search t :wait nil
                                 :output :stream
                                 :error nil)))

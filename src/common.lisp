@@ -6,8 +6,9 @@
 (defpackage #:common
   (:use #:cl)
   (:export #:*gpg-program* #:*keys*
-           #:*options*
            #:optionp
+           #:arguments
+           #:getopt-store
            #:exit-program #:code
            #:key #:user-id #:fingerprint
            #:revoked
@@ -38,9 +39,26 @@
 (defvar *gpg-program* "gpg")
 (defvar *keys* (make-hash-table :test #'equal))
 (defvar *options* nil)
+(defvar *arguments* nil)
 
 (defun optionp (option-symbol)
   (assoc option-symbol *options*))
+
+(defun arguments (&optional position)
+  (if position
+      (nth position *arguments*)
+      *arguments*))
+
+(defun getopt-store (args spec &rest keys)
+  (multiple-value-bind (options arguments unknown)
+      (apply #'just-getopt-parser:getopt args spec keys)
+
+    (setf *options* options)
+    (setf *arguments* arguments)
+
+    (when (and unknown (not (optionp :help)))
+      (format *error-output* "Use option \"-h\" for help.~%")
+      (exit-program 1))))
 
 (define-condition exit-program ()
   ((code :reader code :initarg :code :type integer)))

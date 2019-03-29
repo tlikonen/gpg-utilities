@@ -38,25 +38,19 @@ Options:
   (let ((key1 nil)
         (key2 nil))
 
-    (multiple-value-bind (options arguments unknown)
-        (just-getopt-parser:getopt args '((:help #\h)
-                                          (:help "help")
-                                          (:revoked "revoked")
-                                          (:expired "expired"))
-                                   :error-on-unknown-option t
-                                   :error-on-argument-not-allowed t)
+    (getopt-store args '((:help #\h)
+                         (:help "help")
+                         (:revoked "revoked")
+                         (:expired "expired"))
+                  :error-on-unknown-option t
+                  :error-on-argument-not-allowed t)
 
-      (when unknown
-        (format *error-output* "Use option \"-h\" for help.~%")
-        (exit-program 1))
+    (when (optionp :help)
+      (print-usage)
+      (exit-program 0))
 
-      (when (assoc :help options)
-        (print-usage)
-        (exit-program 0))
-
-      (setf *options* options)
-      (setf key1 (nth 0 arguments)
-            key2 (nth 1 arguments)))
+    (setf key1 (arguments 0)
+          key2 (arguments 1))
 
     (unless (and (stringp key1)
                  (stringp key2)
