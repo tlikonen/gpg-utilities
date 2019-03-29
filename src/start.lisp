@@ -30,11 +30,12 @@ specific subcommand.~%~%" program))
          (lambda (c)
            (sb-ext:exit :code (common:code c))))
        (sb-int:simple-stream-error
-         (lambda (c) (declare (ignore c))))
+         (lambda (c)
+           (declare (ignore c))
+           (sb-ext:exit :code 1)))
        (sb-sys:interactive-interrupt
          (lambda (c)
            (declare (ignore c))
-           (terpri)
            (sb-ext:exit :code 1)))
        (serious-condition
          (lambda (c)
