@@ -50,15 +50,20 @@
       *arguments*))
 
 (defun getopt-store (args spec &rest keys)
-  (multiple-value-bind (options arguments unknown)
-      (apply #'just-getopt-parser:getopt args spec keys)
+  (handler-bind ((just-getopt-parser:unknown-option
+                   (lambda (c)
+                     (format *error-output* "~A~%" c)
+                     (invoke-restart 'just-getopt-parser:skip-option))))
 
-    (setf *options* options)
-    (setf *arguments* arguments)
+    (multiple-value-bind (options arguments unknown)
+        (apply #'just-getopt-parser:getopt args spec keys)
 
-    (when (and unknown (not (optionp :help)))
-      (format *error-output* "Use option \"-h\" for help.~%")
-      (exit-program 1))))
+      (setf *options* options)
+      (setf *arguments* arguments)
+
+      (when (and unknown (not (optionp :help)))
+        (format *error-output* "Use option \"-h\" for help.~%")
+        (exit-program 1)))))
 
 (define-condition exit-program ()
   ((code :reader code :initarg :code :type integer)))

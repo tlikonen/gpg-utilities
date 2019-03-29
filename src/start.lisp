@@ -22,11 +22,7 @@ specific subcommand.~%~%" program))
 
 (defun start ()
   (handler-bind
-      ((just-getopt-parser:unknown-option
-         (lambda (c)
-           (format *error-output* "~A~%" c)
-           (invoke-restart 'just-getopt-parser:skip-option)))
-       (common:exit-program
+      ((common:exit-program
          (lambda (c)
            (sb-ext:exit :code (common:code c))))
        (sb-int:simple-stream-error

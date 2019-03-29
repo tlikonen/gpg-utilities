@@ -10,8 +10,7 @@
    (:file "start" :depends-on ("common"
                                "gpg-tofu" "gpg-graph"
                                "gpg-cert-path"
-                               "gpg-count-steps"
-                               "just-getopt-parser"))
+                               "gpg-count-steps"))
    (:file "common" :depends-on ("just-getopt-parser" "c-strings"))
    (:file "just-getopt-parser")
    (:file "c-strings")))
