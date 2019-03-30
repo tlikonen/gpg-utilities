@@ -27,7 +27,8 @@ use different algorithms for drawing nodes and edges. Example:
 
 Options:
 
-  --revoked     Accept revoked keys and user ids.
+  --revoked     Accept revoked keys and certificates for revoked user
+                ids.
 
   --expired     Accept expired keys.
 

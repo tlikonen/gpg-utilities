@@ -32,7 +32,8 @@ The output consists of lines with three fields:
 
 Options:
 
-  --revoked     Accept revoked keys and user ids.
+  --revoked     Accept revoked keys and certificates for revoked user
+                ids.
 
   --expired     Accept expired keys.
 
