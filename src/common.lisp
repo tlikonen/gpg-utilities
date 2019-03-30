@@ -41,6 +41,12 @@
 (defvar *options* nil)
 (defvar *arguments* nil)
 
+(define-condition exit-program ()
+  ((code :reader code :initarg :code :type integer)))
+
+(defun exit-program (exit-code)
+  (error 'exit-program :code exit-code))
+
 (defun optionp (option-symbol)
   (assoc option-symbol *options*))
 
@@ -66,12 +72,6 @@
       (when (and unknown (not (optionp :help)))
         (format *error-output* "Use option \"-h\" for help.~%")
         (exit-program 1)))))
-
-(define-condition exit-program ()
-  ((code :reader code :initarg :code :type integer)))
-
-(defun exit-program (exit-code)
-  (error 'exit-program :code exit-code))
 
 (defclass key ()
   ((user-id :accessor user-id :initform nil)
