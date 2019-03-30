@@ -90,9 +90,7 @@ Options:
 
 (defun main (&rest args)
   (getopt-store args '((:help #\h)
-                       (:help "help"))
-                :error-on-unknown-option t
-                :error-on-argument-not-allowed t)
+                       (:help "help")))
 
   (when (optionp :help)
     (print-usage)

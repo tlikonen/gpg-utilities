@@ -47,9 +47,7 @@ Options:
     (getopt-store args '((:help #\h)
                          (:help "help")
                          (:revoked "revoked")
-                         (:expired "expired"))
-                  :error-on-unknown-option t
-                  :error-on-argument-not-allowed t)
+                         (:expired "expired")))
 
       (when (optionp :help)
         (print-usage)

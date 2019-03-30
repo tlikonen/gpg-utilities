@@ -49,14 +49,16 @@
       (nth position *arguments*)
       *arguments*))
 
-(defun getopt-store (args spec &rest keys)
+(defun getopt-store (args spec)
   (handler-bind ((just-getopt-parser:unknown-option
                    (lambda (c)
                      (format *error-output* "~A~%" c)
                      (invoke-restart 'just-getopt-parser:skip-option))))
 
     (multiple-value-bind (options arguments unknown)
-        (apply #'just-getopt-parser:getopt args spec keys)
+        (just-getopt-parser:getopt args spec
+                                   :error-on-unknown-option t
+                                   :error-on-argument-not-allowed t)
 
       (setf *options* options)
       (setf *arguments* arguments)
