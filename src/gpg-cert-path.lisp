@@ -113,10 +113,13 @@ Options:
                         (setf key2 key))))
 
                 ((and (member :uid expect)
-                      (string= "uid" (nth 0 fields))
-                      (not (user-id key)))
-                 (setf expect '(:sig))
-                 (setf (user-id key) (unescape-user-id (nth 9 fields))))
+                      (string= "uid" (nth 0 fields)))
+                 (if (and (plusp (length (nth 1 fields)))
+                          (char= #\r (aref (nth 1 fields) 0)))
+                     (setf expect '(:uid))
+                     (setf expect '(:sig)))
+                 (unless (user-id key)
+                   (setf (user-id key) (unescape-user-id (nth 9 fields)))))
 
                 ((and (member :sig expect)
                       (or (string= "sig" (nth 0 fields))
