@@ -27,12 +27,18 @@ use different algorithms for drawing nodes and edges. Example:
 
 Options:
 
+  --revoked     Accept revoked keys and user ids.
+
+  --expired     Accept expired keys.
+
   -h, --help    Print this help text.~%~%"
           *program*))
 
 (defun main (&rest args)
   (getopt-store args '((:help #\h)
-                       (:help "help"))
+                       (:help "help")
+                       (:revoked "revoked")
+                       (:expired "expired"))
                 :error-on-unknown-option t
                 :error-on-argument-not-allowed t)
 
@@ -83,9 +89,10 @@ Options:
               ((and (member :uid expect)
                     (string= "uid" (nth 0 fields)))
                (if (and (plusp (length (nth 1 fields)))
-                        (char= #\r (aref (nth 1 fields) 0)))
+                        (char= #\r (aref (nth 1 fields) 0))
+                        (not (optionp :revoked)))
                    (setf expect '(:uid))
-                   (setf expect '(:sig)))
+                   (setf expect '(:sig :uid)))
                (unless (user-id key)
                  (setf (user-id key) (unescape-user-id (nth 9 fields)))))
 
@@ -127,14 +134,15 @@ digraph \"GnuPG key graph\" {
 
   (loop :for key :being :each :hash-value :in *keys*
         :for user-id := (user-id key)
-        :if user-id :do
-          (print-graphviz-key-node key :indent 2)
-          (loop :for cert :in (mapcar #'key (certificates-from key))
-                :if (user-id cert) :do
-                  (print-graphviz-edge cert key
-                                       :indent 4
-                                       :both (when (certificates-for-p key cert)
-                                               (remove-certificates-from cert key)
-                                               t))))
+        :if (and user-id (validp key))
+          :do (print-graphviz-key-node key :indent 2)
+              (loop :for cert-key :in (mapcar #'key (certificates-from key))
+                    :if (and (user-id cert-key) (validp cert-key))
+                      :do (print-graphviz-edge
+                           cert-key key
+                           :indent 4
+                           :both (when (certificates-for-p key cert-key)
+                                   (remove-certificates-from cert-key key)
+                                   t))))
 
   (format t "}~%"))

@@ -32,7 +32,7 @@ The output consists of lines with three fields:
 
 Options:
 
-  --revoked     Accept revoked keys.
+  --revoked     Accept revoked keys and user ids.
 
   --expired     Accept expired keys.
 
@@ -116,9 +116,10 @@ Options:
                 ((and (member :uid expect)
                       (string= "uid" (nth 0 fields)))
                  (if (and (plusp (length (nth 1 fields)))
-                          (char= #\r (aref (nth 1 fields) 0)))
+                          (char= #\r (aref (nth 1 fields) 0))
+                          (not (optionp :revoked)))
                      (setf expect '(:uid))
-                     (setf expect '(:sig)))
+                     (setf expect '(:sig :uid)))
                  (unless (user-id key)
                    (setf (user-id key) (unescape-user-id (nth 9 fields)))))
 
