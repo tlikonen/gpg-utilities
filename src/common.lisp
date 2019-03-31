@@ -41,7 +41,7 @@
 (defvar *options* nil)
 (defvar *arguments* nil)
 (defvar *shortest-path-max-steps* 20)
-(defvar *graphviz-invalid-color* "#999999")
+(defvar *graphviz-invalid-color* "#888888")
 
 (define-condition exit-program ()
   ((code :reader code :initarg :code :type integer)))
