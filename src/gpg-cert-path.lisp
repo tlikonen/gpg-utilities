@@ -60,9 +60,6 @@ Options:
                         key2))
       (error "Invalid arguments. See \"-h\" for help."))
 
-    (setf key1 (string-upcase key1)
-          key2 (string-upcase key2))
-
     (clrhash *keys*)
 
     (format *error-output* "Reading data from GnuPG...")
@@ -79,69 +76,25 @@ Options:
                                   :output :stream
                                   :error nil)))
 
-      (loop :with key-id :with key :with expect
-            :for line := (read-line gpg nil)
-            :for fields := (if line (split-colon-string line))
-            :while line :do
-
-              (cond
-                ((string= "pub" (nth 0 fields))
-                 (setf expect '(:fpr))
-                 (setf key-id (nth 4 fields))
-                 (setf key (get-create-key key-id))
-                 (when (plusp (length (nth 1 fields)))
-                   (case (aref (nth 1 fields) 0)
-                     (#\r (setf (revoked key) t))
-                     (#\e (setf (expired key) t)))))
-
-                ((string= "sub" (nth 0 fields))
-                 (setf expect nil))
-
-                ((and (member :fpr expect)
-                      (string= "fpr" (nth 0 fields)))
-                 (setf expect '(:uid))
-                 (setf (fingerprint key) (nth 9 fields))
-                 (cond ((and (stringp key1)
-                             (string= key1 (fingerprint key)))
-                        (setf key1 key))
-                       ((and (stringp key2)
-                             (string= key2 (fingerprint key)))
-                        (setf key2 key))))
-
-                ((and (member :uid expect)
-                      (string= "uid" (nth 0 fields)))
-                 (if (and (plusp (length (nth 1 fields)))
-                          (char= #\r (aref (nth 1 fields) 0))
-                          (not (optionp :invalid)))
-                     (setf expect '(:uid))
-                     (setf expect '(:sig :uid)))
-                 (unless (user-id key)
-                   (setf (user-id key) (unescape-user-id (nth 9 fields)))))
-
-                ((and (member :sig expect)
-                      (or (string= "sig" (nth 0 fields))
-                          (string= "rev" (nth 0 fields)))
-                      (plusp (length (nth 1 fields)))
-                      (char= #\! (aref (nth 1 fields) 0))
-                      (string/= key-id (nth 4 fields)))
-                 (add-certificates-for
-                  (get-create-key (nth 4 fields))
-                  (make-instance (if (string= "sig" (nth 0 fields))
-                                     'certificate
-                                     'revocation)
-                                 :key key
-                                 :created (parse-time-stamp (nth 5 fields))
-                                 :expires
-                                 (parse-time-stamp (nth 6 fields))))))))
+      (collect-key-data gpg))
 
     (clean-all-keys)
 
     (format *error-output* " done.~%")
     (force-output *error-output*)
 
-    (cond ((not (typep key1 'key))
+    (loop :for key :being :each :hash-value :in *keys*
+          :for fingerprint := (fingerprint key)
+          :while (or (not (typep key1 'key))
+                     (not (typep key2 'key)))
+          :do (cond ((equalp key1 fingerprint)
+                     (setf key1 key))
+                    ((equalp key2 fingerprint)
+                     (setf key2 key))))
+
+    (cond ((stringp key1)
            (error "The FROM key not found in the keyring."))
-          ((not (typep key2 'key))
+          ((stringp key2)
            (error "The TO key not found in the keyring.")))
 
     (let ((paths (multiple-value-bind (paths steps)
