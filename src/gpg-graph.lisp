@@ -73,17 +73,25 @@ digraph \"GnuPG key graph\" {
   node [shape=box];
 ")
 
-  (loop :for key :being :each :hash-value :in *keys*
-        :for user-id := (user-id key)
-        :if (and user-id (validp key))
-          :do (print-graphviz-key-node key :indent 2)
-              (loop :for cert-key :in (mapcar #'key (certificates-from key))
-                    :if (and (user-id cert-key) (validp cert-key))
-                      :do (print-graphviz-edge
-                           cert-key key
-                           :indent 4
-                           :both (when (certificates-for-p key cert-key)
-                                   (remove-certificates-from cert-key key)
-                                   t))))
+  (loop
+    :for key :being :each :hash-value :in *keys*
+    :for user-id := (user-id key)
+    :if (and user-id
+             (or (optionp :invalid)
+                 (validp key)))
+      :do (print-graphviz-key-node key :indent 2)
+          (loop
+            :for cert-key :in (mapcar #'key (certificates-from key))
+            :if (and (user-id cert-key)
+                     (or (optionp :invalid)
+                         (valid-certificate-p cert-key key)))
+              :do (print-graphviz-edge
+                   cert-key key
+                   :indent 4
+                   :both
+                   (when (and (valid-certificate-p cert-key key)
+                              (valid-certificate-p key cert-key))
+                     (remove-certificates-from cert-key key)
+                     t))))
 
   (format t "}~%"))
