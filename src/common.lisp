@@ -41,6 +41,7 @@
 (defvar *options* nil)
 (defvar *arguments* nil)
 (defvar *shortest-path-max-steps* 20)
+(defvar *graphviz-invalid-color* "#999999")
 
 (define-condition exit-program ()
   ((code :reader code :initarg :code :type integer)))
@@ -265,10 +266,19 @@
           (list (split-fingerprint (fingerprint key)))
           (if (valid-display-p key)
               ""
-              ", fontcolor=\"#aaaaaa\"")))
+              (format nil ", fontcolor=\"~A\", color=\"~:*~A\"style=dashed"
+                      *graphviz-invalid-color*))))
 
 (defun print-graphviz-edge (from-key to-key &key (indent 0) both
                                               (stream *standard-output*))
-  (format stream "~V,2T\"~A\" -> \"~A\" [dir=~A];~%"
+  (format stream "~V,2T\"~A\" -> \"~A\" [dir=~A~A];~%"
           indent (fingerprint from-key) (fingerprint to-key)
-          (if both "both" "forward")))
+          (if both "both" "forward")
+          (let ((cert (loop :for cert :in (certificates-for from-key)
+                            :if (eql (key cert) to-key) :return cert)))
+            (if (or (time-stamp-expired-p (expires cert))
+                    (not (valid-display-p from-key))
+                    (not (valid-display-p to-key)))
+                (format nil ", color=\"~A\", style=dashed"
+                        *graphviz-invalid-color*)
+                ""))))
