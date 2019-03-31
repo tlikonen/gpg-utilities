@@ -27,10 +27,8 @@ use different algorithms for drawing nodes and edges. Example:
 
 Options:
 
-  --revoked     Accept revoked keys and certificates for revoked user
-                ids.
-
-  --expired     Accept expired keys.
+  --invalid     Accept revoked keys, certificates for revoked user ids,
+                expired keys and expired certificates.
 
   -h, --help    Print this help text.~%~%"
           *program*))
@@ -38,8 +36,7 @@ Options:
 (defun main (&rest args)
   (getopt-store args '((:help #\h)
                        (:help "help")
-                       (:revoked "revoked")
-                       (:expired "expired")))
+                       (:invalid "invalid")))
 
   (when (optionp :help)
     (print-usage)
@@ -89,7 +86,7 @@ Options:
                     (string= "uid" (nth 0 fields)))
                (if (and (plusp (length (nth 1 fields)))
                         (char= #\r (aref (nth 1 fields) 0))
-                        (not (optionp :revoked)))
+                        (not (optionp :invalid)))
                    (setf expect '(:uid))
                    (setf expect '(:sig :uid)))
                (unless (user-id key)

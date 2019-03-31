@@ -89,8 +89,9 @@
 (defclass revocation (certificate) nil)
 
 (defun validp (key)
-  (and (or (optionp :revoked) (not (revoked key)))
-       (or (optionp :expired) (not (expired key)))))
+  (or (optionp :invalid)
+      (and (not (revoked key))
+           (not (expired key)))))
 
 (defun valid-display-p (key)
   (and (not (revoked key))
@@ -121,7 +122,8 @@
   ;; list. Does not modify the original list.
   (remove-if (lambda (cert)
                (or (typep cert 'revocation)
-                   (time-stamp-expired-p (expires cert))))
+                   (and (not (optionp :invalid))
+                        (time-stamp-expired-p (expires cert)))))
              certs))
 
 (defun clean-all-keys ()
