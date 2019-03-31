@@ -205,8 +205,7 @@
                      :for key :in keys
                      :do (loop :for cert :in (certificates-for key)
                                :for cert-key := (key cert)
-                               :do (when (and (or (validp cert-key)
-                                                  (eql cert-key to-key))
+                               :do (when (and (validp cert-key)
                                               (not (gethash cert-key
                                                             hash-table)))
                                      (push cert-key next-keys)))
@@ -230,8 +229,7 @@
                (cond ((> steps (gethash place studied)))
                      ((eql place to)
                       (push (reverse path) paths))
-                     ((and (not (eql place from))
-                           (not (validp place))))
+                     ((not (validp place)))
                      (t
                       (loop :for cert :in (certificates-for place)
                             :for next-key := (key cert)

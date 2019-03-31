@@ -17,8 +17,7 @@ Usage: ~A [options] [--] <from-key> <to-key>
 
 Find the shortest certificate path(s) between two GnuPG keys. The output
 is data for Graphviz which can draw an image of certificate path. Both
-arguments must be 40-character key fingerprints. By default revoked and
-expired keys are accepted only at the endpoints of the path.
+arguments must be 40-character key fingerprints.
 
 Graphviz comes with tools like \"dot\", \"neato\", \"fdp\" etc. which
 use different algorithms for drawing nodes and edges. Example:

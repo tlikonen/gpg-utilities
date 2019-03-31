@@ -20,8 +20,7 @@ keyring. If no arguments are given test all keys between each other (can
 take some time on large keyrings). If one key argument is given count
 certificate steps from that key to all other keys. If two keys are given
 count steps just between those keys. Both arguments, if given at all,
-must be 40-character key fingerprints. By default revoked and expired
-keys are accepted only at the endpoints of the path.
+must be 40-character key fingerprints.
 
 The output consists of lines with three fields:
 
