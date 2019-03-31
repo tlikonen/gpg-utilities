@@ -92,6 +92,9 @@ Options:
                (unless (user-id key)
                  (setf (user-id key) (unescape-user-id (nth 9 fields)))))
 
+              ((string= "uat" (nth 0 fields))
+               (setf expect '(:uid)))
+
               ((and (member :sig expect)
                     (or (string= "sig" (nth 0 fields))
                         (string= "rev" (nth 0 fields)))
