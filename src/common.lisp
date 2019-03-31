@@ -40,6 +40,7 @@
 (defvar *keys* (make-hash-table :test #'equal))
 (defvar *options* nil)
 (defvar *arguments* nil)
+(defvar *shortest-path-max-steps* 20)
 
 (define-condition exit-program ()
   ((code :reader code :initarg :code :type integer)))
@@ -185,8 +186,6 @@
 (defun split-fingerprint (fingerprint)
   (loop :for i :from 4 :upto (length fingerprint) :by 4
         :collect (subseq fingerprint (- i 4) i)))
-
-(defvar *shortest-path-max-steps* 20)
 
 (defun study-levels (from-key to-key &optional (hash-table (make-hash-table)))
   (let ((found-level nil))
