@@ -22,7 +22,6 @@
            #:split-colon-string
            #:unescape-user-id
            #:parse-time-stamp
-           #:*shortest-path-max-steps*
            #:study-levels
            #:shortest-paths
            #:print-graphviz-key-node
@@ -280,7 +279,9 @@
         ;; (format *error-output* "Function calls: ~D~%" calls)
         (if paths
             (values paths steps)
-            (values nil nil))))))
+            (error "Couldn't find a path between the keys.~%~
+        Maybe there is no connection or at least not in this keyring~%~
+        or within the maximum of ~D steps." *shortest-path-max-steps*))))))
 
 (defun escape-characters (string esc-chars esc)
   (with-output-to-string (out)
