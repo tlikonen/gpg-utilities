@@ -92,7 +92,7 @@
 (defmethod user-id ((key key))
   (loop :for user-id :in (user-ids key)
         :if (typep user-id 'primary-user-id)
-          :do (return (id-string user-id))))
+          :return (id-string user-id)))
 
 (defclass certificate ()
   ((key :reader key :initarg :key)
