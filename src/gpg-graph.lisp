@@ -89,8 +89,10 @@ digraph \"GnuPG key graph\" {
                    cert-key key
                    :indent 4
                    :both
-                   (when (and (valid-certificate-p cert-key key)
-                              (valid-certificate-p key cert-key))
+                   (when (or (and (valid-certificate-p cert-key key)
+                                  (valid-certificate-p key cert-key))
+                             (and (not (valid-certificate-p cert-key key))
+                                  (not (valid-certificate-p key cert-key))))
                      (remove-certificates-from cert-key key)
                      t))))
 
