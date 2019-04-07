@@ -27,8 +27,8 @@ use different algorithms for drawing nodes and edges. Example:
 
 Options:
 
-  --invalid     Accept revoked keys, certificates for revoked user ids,
-                expired keys and expired certificates.
+  --invalid     Include revoked keys, expired keys, expired certificates
+                and certificates for revoked user ids.
 
   --one-way     Print only one-way arrows for certificates.
 

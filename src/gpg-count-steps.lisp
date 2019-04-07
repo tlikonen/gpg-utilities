@@ -31,8 +31,8 @@ The output consists of lines with three fields:
 
 Options:
 
-  --invalid     Accept revoked keys, certificates for revoked user ids,
-                expired keys and expired certificates.
+  --invalid     Include revoked keys, expired keys, expired certificates
+                and certificates for revoked user ids.
 
   -h, --help    Print this help text.~%~%"
           *program*))
