@@ -59,65 +59,7 @@ Options:
                                 :output :stream
                                 :error nil)))
 
-    (loop :with key-id :with key :with expect
-          :for line := (read-line gpg nil)
-          :for fields := (if line (split-colon-string line))
-          :while line :do
-
-            (cond
-              ((string= "pub" (nth 0 fields))
-               (setf expect '(:fpr))
-               (setf key-id (nth 4 fields))
-               (setf key (get-create-key key-id))
-               (when (plusp (length (nth 1 fields)))
-                 (case (aref (nth 1 fields) 0)
-                   (#\r (setf (revoked key) t))
-                   (#\e (setf (expired key) t)))))
-
-              ((string= "sub" (nth 0 fields))
-               (setf expect nil))
-
-              ((and (member :fpr expect)
-                    (string= "fpr" (nth 0 fields)))
-               (setf expect '(:uid))
-               (setf (fingerprint key) (nth 9 fields)))
-
-              ((and (member :uid expect)
-                    (string= "uid" (nth 0 fields)))
-               (if (and (plusp (length (nth 1 fields)))
-                        (char= #\r (aref (nth 1 fields) 0))
-                        (not (optionp :invalid)))
-                   (setf expect '(:uid))
-                   (setf expect '(:sig :uid)))
-               (unless (user-id key)
-                 (setf (user-id key) (unescape-user-id (nth 9 fields)))))
-
-              ((string= "uat" (nth 0 fields))
-               (setf expect '(:uid)))
-
-              ((and (member :sig expect)
-                    (or (string= "sig" (nth 0 fields))
-                        (string= "rev" (nth 0 fields)))
-                    (plusp (length (nth 1 fields)))
-                    (char= #\! (aref (nth 1 fields) 0))
-                    (string/= key-id (nth 4 fields)))
-               (let ((cert-key (get-create-key (nth 4 fields)))
-                     (cert-type (if (string= "sig" (nth 0 fields))
-                                    'certificate
-                                    'revocation)))
-                 (add-certificates-from
-                  key (make-instance
-                       cert-type
-                       :key cert-key
-                       :created (parse-time-stamp (nth 5 fields))
-                       :expires (parse-time-stamp (nth 6 fields))))
-                 (add-certificates-for
-                  cert-key (make-instance
-                            cert-type
-                            :key key
-                            :created (parse-time-stamp (nth 5 fields))
-                            :expires
-                            (parse-time-stamp (nth 6 fields)))))))))
+    (collect-key-data gpg))
 
   (clean-all-keys)
 
@@ -131,17 +73,25 @@ digraph \"GnuPG key graph\" {
   node [shape=box];
 ")
 
-  (loop :for key :being :each :hash-value :in *keys*
-        :for user-id := (user-id key)
-        :if (and user-id (validp key))
-          :do (print-graphviz-key-node key :indent 2)
-              (loop :for cert-key :in (mapcar #'key (certificates-from key))
-                    :if (and (user-id cert-key) (validp cert-key))
-                      :do (print-graphviz-edge
-                           cert-key key
-                           :indent 4
-                           :both (when (certificates-for-p key cert-key)
-                                   (remove-certificates-from cert-key key)
-                                   t))))
+  (loop
+    :for key :being :each :hash-value :in *keys*
+    :for user-id := (user-id key)
+    :if (and user-id
+             (or (optionp :invalid)
+                 (validp key)))
+      :do (print-graphviz-key-node key :indent 2)
+          (loop
+            :for cert-key :in (mapcar #'key (certificates-from key))
+            :if (and (user-id cert-key)
+                     (or (optionp :invalid)
+                         (valid-certificate-p cert-key key)))
+              :do (print-graphviz-edge
+                   cert-key key
+                   :indent 4
+                   :both
+                   (when (and (valid-certificate-p cert-key key)
+                              (valid-certificate-p key cert-key))
+                     (remove-certificates-from cert-key key)
+                     t))))
 
   (format t "}~%"))
