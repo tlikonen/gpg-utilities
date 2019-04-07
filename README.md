@@ -126,7 +126,7 @@ OpenPGP key: [4E10 55DC 84E9 DFF6 13D7 8557 719D 69D3 2453 9450][PGP]
 License: [Creative Commons CC0][CC0] (public domain dedication)
 
 The source code repository:
-<https://github.com/tlikonen/cl-just-getopt-parser>
+<https://github.com/tlikonen/gpg-utilities>
 
 [PGP]: http://www.iki.fi/tlikonen/pgp-key.asc
 [CC0]: https://creativecommons.org/publicdomain/zero/1.0/legalcode
