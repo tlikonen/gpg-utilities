@@ -30,7 +30,7 @@ Options:
   --invalid     Include revoked keys, expired keys, expired certificates
                 and certificates for revoked user ids.
 
-  --one-way     Print only one-way arrows for certificates.
+  --two-way     Print two-way arrows between cross-certified keys.
 
   -h, --help    Print this help text.~%~%"
           *program*))
@@ -39,7 +39,7 @@ Options:
   (getopt args '((:help #\h)
                  (:help "help")
                  (:invalid "invalid")
-                 (:one-way "one-way")))
+                 (:two-way "two-way")))
 
   (when (optionp :help)
     (print-usage)
@@ -92,7 +92,7 @@ digraph \"GnuPG key graph\" {
                    cert-key key
                    :indent 4
                    :both
-                   (when (and (not (optionp :one-way))
+                   (when (and (optionp :two-way)
                               (or (and (valid-certificate-p
                                         cert-key key)
                                        (valid-certificate-p
