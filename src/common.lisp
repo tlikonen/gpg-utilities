@@ -60,7 +60,9 @@
 
     (multiple-value-bind (options arguments unknown)
         (just-getopt-parser:getopt args spec
+                                   :prefix-match-long-options t
                                    :error-on-unknown-option t
+                                   :error-on-ambiguous-option t
                                    :error-on-argument-not-allowed t)
 
       (setf *options* options)
