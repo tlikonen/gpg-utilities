@@ -306,7 +306,7 @@
           (list (split-fingerprint (fingerprint key)))
           (if (validp key)
               ""
-              (format nil ", fontcolor=\"~A\", color=\"~:*~A\"style=dashed"
+              (format nil ", fontcolor=\"~A\", color=\"~:*~A\", style=dashed"
                       *graphviz-invalid-color*))))
 
 (defun print-graphviz-edge (from-key to-key &key (indent 0) both
