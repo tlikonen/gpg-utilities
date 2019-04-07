@@ -8,12 +8,12 @@ conf = config.mk
 
 -include $(conf)
 
-all: $(symlinks)
+all: gpg-utilities $(symlinks)
 
 gpg-utilities: $(src)
 	$(sbcl) --script make-image.lisp '$(gpg)'
 
-$(symlinks): gpg-utilities
+$(symlinks):
 	ln -fs gpg-utilities $@
 
 config: $(conf)
