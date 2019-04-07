@@ -30,13 +30,16 @@ Options:
   --invalid     Accept revoked keys, certificates for revoked user ids,
                 expired keys and expired certificates.
 
+  --one-way     Print only one-way arrows for certificates.
+
   -h, --help    Print this help text.~%~%"
           *program*))
 
 (defun main (&rest args)
   (getopt args '((:help #\h)
                  (:help "help")
-                 (:invalid "invalid")))
+                 (:invalid "invalid")
+                 (:one-way "one-way")))
 
   (when (optionp :help)
     (print-usage)
@@ -89,10 +92,15 @@ digraph \"GnuPG key graph\" {
                    cert-key key
                    :indent 4
                    :both
-                   (when (or (and (valid-certificate-p cert-key key)
-                                  (valid-certificate-p key cert-key))
-                             (and (not (valid-certificate-p cert-key key))
-                                  (not (valid-certificate-p key cert-key))))
+                   (when (and (not (optionp :one-way))
+                              (or (and (valid-certificate-p
+                                        cert-key key)
+                                       (valid-certificate-p
+                                        key cert-key))
+                                  (and (not (valid-certificate-p
+                                             cert-key key))
+                                       (not (valid-certificate-p
+                                             key cert-key)))))
                      (remove-certificates-from cert-key key)
                      t))))
 
