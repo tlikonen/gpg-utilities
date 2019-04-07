@@ -220,7 +220,7 @@
   (loop :for i :from 4 :upto (length fingerprint) :by 4
         :collect (subseq fingerprint (- i 4) i)))
 
-(defun study-levels (from-key to-key &optional (hash-table (make-hash-table)))
+(defun study-levels (from-key to-key hash-table)
   (let ((found-level nil))
     (labels
         ((levels (keys level)
