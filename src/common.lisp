@@ -9,7 +9,7 @@
            #:*keys*
            #:optionp
            #:arguments
-           #:getopt-store
+           #:getopt
            #:exit-program #:code
            #:key
            #:user-id
@@ -52,7 +52,7 @@
       (nth position *arguments*)
       *arguments*))
 
-(defun getopt-store (args spec)
+(defun getopt (args spec)
   (handler-bind ((just-getopt-parser:unknown-option
                    (lambda (c)
                      (format *error-output* "~A~%" c)

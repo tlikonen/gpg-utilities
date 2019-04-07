@@ -34,9 +34,9 @@ Options:
           *program*))
 
 (defun main (&rest args)
-  (getopt-store args '((:help #\h)
-                       (:help "help")
-                       (:invalid "invalid")))
+  (getopt args '((:help #\h)
+                 (:help "help")
+                 (:invalid "invalid")))
 
   (when (optionp :help)
     (print-usage)

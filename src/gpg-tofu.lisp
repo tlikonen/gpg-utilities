@@ -89,8 +89,8 @@ Options:
           *program*))
 
 (defun main (&rest args)
-  (getopt-store args '((:help #\h)
-                       (:help "help")))
+  (getopt args '((:help #\h)
+                 (:help "help")))
 
   (when (optionp :help)
     (print-usage)
