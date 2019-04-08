@@ -82,8 +82,8 @@
    (cerfificates-from :accessor certificates-from :initform nil)))
 
 (defclass user-id ()
-  ((id-string :accessor id-string :initarg :id-string :initform nil)
-   (key :reader key :initarg :key :initform nil)
+  ((id-string :reader id-string :initarg :id-string)
+   (key :reader key :initarg :key)
    (revoked :accessor revoked :initform nil)
    (expired :accessor expired :initform nil)
    (certificates-from :accessor certificates-from :initform nil)))
