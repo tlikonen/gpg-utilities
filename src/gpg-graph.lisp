@@ -78,13 +78,13 @@ digraph \"GnuPG key graph\" {
 
   (loop
     :for key :being :each :hash-value :in *keys*
-    :for user-id := (user-id key)
-    :if (and user-id
+    :if (and (user-id key)
              (or (optionp :invalid)
                  (validp key)))
       :do (print-graphviz-key-node key :indent 2)
           (loop
-            :for cert-key :in (mapcar #'key (certificates-from key))
+            :for cert :in (certificates-from key)
+            :for cert-key := (key cert)
             :if (and (user-id cert-key)
                      (or (optionp :invalid)
                          (valid-certificate-p cert-key key)))
