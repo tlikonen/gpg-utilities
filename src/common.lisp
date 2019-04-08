@@ -14,6 +14,7 @@
            #:key
            #:user-id
            #:fingerprint
+           #:creator-key
            #:certificates-from
            #:validp
            #:clean-all-keys
@@ -95,13 +96,15 @@
           :return (id-string user-id)))
 
 (defclass certificate ()
-  ((key :reader key :initarg :key)
+  ((creator-key :reader creator-key :initarg :creator-key)
    (created :reader created :initarg :created)
    (expires :reader expires :initarg :expires)
-   (target-user-id :reader target-user-id :initarg :target-user-id
-                   :initform nil)))
+   (target-uid :reader target-uid :initarg :target-uid)))
 
 (defclass revocation (certificate) nil)
+
+(defun target-key (cert)
+  (key (target-uid cert)))
 
 (defmethod validp ((key key))
   (and (not (revoked key))
@@ -113,7 +116,7 @@
 (defmethod validp ((cert certificate))
   (flet ((time-stamp-expired-p (time)
            (if time (<= time (get-universal-time)) nil)))
-    (and (validp (target-user-id cert))
+    (and (validp (target-uid cert))
          (not (time-stamp-expired-p (expires cert))))))
 
 (defun get-create-key (key-id)
@@ -122,13 +125,13 @@
 
 (defun clean-all-keys ()
   (let ((cert-hash (make-hash-table)))
-    (flet ((clean-cert-list (cert-list)
+    (flet ((clean-cert-list (cert-list key-predicate)
              (clrhash cert-hash)
 
              (loop
                :with update
                :for cert :in cert-list
-               :for cert-key := (key cert)
+               :for cert-key := (funcall key-predicate cert)
                :for old-cert := (gethash cert-key cert-hash)
 
                :do (setf update nil)
@@ -157,19 +160,19 @@
         :for key :being :each :hash-value :in *keys* :do
 
           (setf (certificates-for key)
-                (clean-cert-list (certificates-for key)))
+                (clean-cert-list (certificates-for key) #'target-key))
 
           (loop :for uid :in (user-ids key)
                 :append (certificates-from uid) :into certs
                 :finally
                    (setf (certificates-from key)
-                         (clean-cert-list certs)))))))
+                         (clean-cert-list certs #'creator-key)))))))
 
 (defun valid-certificate-p (from-key to-key)
   (and (validp from-key)
        (validp to-key)
        (some (lambda (cert)
-               (and (eql from-key (key cert))
+               (and (eql from-key (creator-key cert))
                     (validp cert)))
              (certificates-from to-key))))
 
@@ -179,9 +182,9 @@
 (defun add-certificates-from (user-id cert)
   (pushnew cert (certificates-from user-id)))
 
-(defun remove-certificates-from (key cert-key)
+(defun remove-certificates-from (key creator-key)
   (setf (certificates-from key)
-        (remove cert-key (certificates-from key) :key #'key)))
+        (remove creator-key (certificates-from key) :key #'creator-key)))
 
 (defun split-colon-string (string)
   (loop :with items
@@ -238,13 +241,13 @@
                (loop :with next-keys
                      :for key :in keys
                      :do (loop :for cert :in (certificates-for key)
-                               :for cert-key := (key cert)
+                               :for target-key := (target-key cert)
                                :do (when (and (or (optionp :invalid)
                                                   (and (validp cert)
-                                                       (validp cert-key)))
-                                              (not (gethash cert-key
+                                                       (validp target-key)))
+                                              (not (gethash target-key
                                                             hash-table)))
-                                     (push cert-key next-keys)))
+                                     (push target-key next-keys)))
                      :finally
                         (when next-keys
                           (levels (delete-duplicates next-keys)
@@ -270,7 +273,7 @@
                            (not (validp place))))
                      (t
                       (loop :for cert :in (certificates-for place)
-                            :for next-key := (key cert)
+                            :for next-key := (target-key cert)
                             :do (when (and (or (optionp :invalid)
                                                (validp cert))
                                            (gethash next-key studied))
@@ -315,7 +318,7 @@
           indent (fingerprint from-key) (fingerprint to-key)
           (if both "both" "forward")
           (let ((cert (loop :for cert :in (certificates-for from-key)
-                            :if (eql (key cert) to-key) :return cert)))
+                            :if (eql (target-key cert) to-key) :return cert)))
             (if (or (not (validp cert))
                     (not (validp from-key))
                     (not (validp to-key)))
@@ -372,21 +375,13 @@
               (plusp (length (nth 1 fields)))
               (char= #\! (aref (nth 1 fields) 0))
               (string/= key-id (nth 4 fields)))
-         (let ((cert-key (get-create-key (nth 4 fields)))
-               (cert-type (if (string= "sig" (nth 0 fields))
-                              'certificate
-                              'revocation)))
-           (add-certificates-from
-            uid (make-instance
-                 cert-type
-                 :key cert-key
-                 :created (parse-time-stamp (nth 5 fields))
-                 :expires (parse-time-stamp (nth 6 fields))
-                 :target-user-id uid))
-           (add-certificates-for
-            cert-key (make-instance
-                      cert-type
-                      :key key
-                      :created (parse-time-stamp (nth 5 fields))
-                      :expires (parse-time-stamp (nth 6 fields))
-                      :target-user-id uid)))))))
+         (let* ((creator-key (get-create-key (nth 4 fields)))
+                (cert (make-instance (if (string= "sig" (nth 0 fields))
+                                         'certificate
+                                         'revocation)
+                                     :creator-key creator-key
+                                     :created (parse-time-stamp (nth 5 fields))
+                                     :expires (parse-time-stamp (nth 6 fields))
+                                     :target-uid uid)))
+           (add-certificates-from uid cert)
+           (add-certificates-for creator-key cert))))))

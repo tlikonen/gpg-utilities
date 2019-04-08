@@ -84,24 +84,24 @@ digraph \"GnuPG key graph\" {
       :do (print-graphviz-key-node key :indent 2)
           (loop
             :for cert :in (certificates-from key)
-            :for cert-key := (key cert)
-            :if (and (user-id cert-key)
+            :for from-key := (creator-key cert)
+            :if (and (user-id from-key)
                      (or (optionp :invalid)
-                         (valid-certificate-p cert-key key)))
+                         (valid-certificate-p from-key key)))
               :do (print-graphviz-edge
-                   cert-key key
+                   from-key key
                    :indent 4
                    :both
                    (when (and (optionp :two-way)
                               (or (and (valid-certificate-p
-                                        cert-key key)
+                                        from-key key)
                                        (valid-certificate-p
-                                        key cert-key))
+                                        key from-key))
                                   (and (not (valid-certificate-p
-                                             cert-key key))
+                                             from-key key))
                                        (not (valid-certificate-p
-                                             key cert-key)))))
-                     (remove-certificates-from cert-key key)
+                                             key from-key)))))
+                     (remove-certificates-from from-key key)
                      t))))
 
   (format t "}~%"))
