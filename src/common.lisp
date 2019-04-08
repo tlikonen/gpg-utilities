@@ -90,10 +90,10 @@
 
 (defclass primary-user-id (user-id) nil)
 
-(defmethod user-id ((key key))
-  (loop :for user-id :in (user-ids key)
-        :if (typep user-id 'primary-user-id)
-          :return (id-string user-id)))
+(defun user-id (key)
+  (loop :for uid :in (user-ids key)
+        :if (typep uid 'primary-user-id)
+          :return (id-string uid)))
 
 (defclass certificate ()
   ((creator-key :reader creator-key :initarg :creator-key)
