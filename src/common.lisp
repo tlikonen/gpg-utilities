@@ -295,17 +295,28 @@
 
 (defun print-graphviz-key-node (key &key (indent 0)
                                       (stream *standard-output*))
-  (format stream "~V,2T\"~A\"~%~V,2T  [label=\"~A\\l~?\"~A];~%"
-          indent (fingerprint key) indent
-          (escape-graphviz-label (user-id key))
-          (if (>= (length (user-id key)) 55)
-              "~{~A~^ ~}\\l"
-              "~{~A ~A ~A ~A ~A~^ ...\\l... ~}\\r")
-          (list (split-fingerprint (fingerprint key)))
-          (if (validp key)
-              ""
-              (format nil ", fontcolor=\"~A\", color=\"~:*~A\", style=dashed"
-                      *graphviz-invalid-color*))))
+
+  (let ((uids (if (optionp :all-user-ids)
+                  (loop :for uid :in (user-ids key)
+                        :if (or (optionp :invalid)
+                                (validp uid))
+                          :collect (escape-graphviz-label (id-string uid)))
+                  (list (escape-graphviz-label (user-id key))))))
+
+    (format stream "~V,2T\"~A\"~%~V,2T  [label=\"~{~A\\l~}~A\"~A];~%"
+            indent (fingerprint key) indent
+            uids
+            (if (optionp :fingerprint)
+                (format nil "~?"
+                        (if (>= (reduce #'max uids :key #'length) 55)
+                            "~{~A~^ ~}\\l"
+                            "~{~A ~A ~A ~A ~A~^ ...\\l... ~}\\l")
+                        (list (split-fingerprint (fingerprint key))))
+                "")
+            (if (validp key)
+                ""
+                (format nil ", fontcolor=\"~A\", color=\"~:*~A\", style=dashed"
+                        *graphviz-invalid-color*)))))
 
 (defun print-graphviz-edge (from-key to-key &key (indent 0) both
                                               (stream *standard-output*))
@@ -379,4 +390,7 @@
                                      :expires (parse-time-stamp (nth 6 fields))
                                      :target-uid uid)))
            (add-certificates-from uid cert)
-           (add-certificates-for creator-key cert))))))
+           (add-certificates-for creator-key cert)))))
+
+  (loop :for key :being :each :hash-value :in *keys*
+        :do (setf (user-ids key) (reverse (user-ids key)))))

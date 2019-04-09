@@ -31,11 +31,14 @@ The output consists of lines with three fields:
 
 Options:
 
-  --invalid     Include revoked keys, expired keys, expired certificates
-                and certificates for revoked user ids.
+  --invalid
 
-  -h, --help    Print this help text.~%~%"
-          *program*))
+        Include revoked keys, expired keys, expired certificates and
+        certificates for revoked user ids.
+
+  -h, --help
+
+        Print this help text.~%~%" *program*))
 
 (defun main (&rest args)
   (let ((key1 nil)

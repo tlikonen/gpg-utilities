@@ -27,18 +27,33 @@ use different algorithms for drawing nodes and edges. Example:
 
 Options:
 
-  --invalid     Include revoked keys, expired keys, expired certificates
-                and certificates for revoked user ids.
+  --invalid
 
-  --two-way     Print two-way arrows between cross-certified keys.
+        Include revoked keys, expired keys, revoked user ids, expired
+        certificates and certificates for revoked user ids.
 
-  -h, --help    Print this help text.~%~%"
-          *program*))
+  --fingerprint
+
+        Print keys' full fingerprint.
+
+  --all-user-ids
+
+        Print all user ids.
+
+  --two-way
+
+        Print two-way arrows between cross-certified keys.
+
+  -h, --help
+
+        Print this help text.~%~%" *program*))
 
 (defun main (&rest args)
   (getopt args '((:help #\h)
                  (:help "help")
                  (:invalid "invalid")
+                 (:fingerprint "fingerprint")
+                 (:all-user-ids "all-user-ids")
                  (:two-way "two-way")))
 
   (when (optionp :help)

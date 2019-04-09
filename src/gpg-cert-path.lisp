@@ -26,11 +26,22 @@ use different algorithms for drawing nodes and edges. Example:
 
 Options:
 
-  --invalid     Include revoked keys, expired keys, expired certificates
-                and certificates for revoked user ids.
+  --invalid
 
-  -h, --help    Print this help text.~%~%"
-          *program*))
+        Include revoked keys, expired keys, revoked user ids, expired
+        certificates and certificates for revoked user ids.
+
+  --fingerprint
+
+        Print keys' full fingerprint.
+
+  --all-user-ids
+
+        Print all user ids.
+
+  -h, --help
+
+        Print this help text.~%~%" *program*))
 
 (defun main (&rest args)
   (let ((key1 nil)
@@ -38,7 +49,9 @@ Options:
 
     (getopt args '((:help #\h)
                    (:help "help")
-                   (:invalid "invalid")))
+                   (:invalid "invalid")
+                   (:fingerprint "fingerprint")
+                   (:all-user-ids "all-user-ids")))
 
     (when (optionp :help)
       (print-usage)
