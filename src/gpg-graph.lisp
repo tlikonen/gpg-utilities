@@ -77,31 +77,33 @@ digraph \"GnuPG key graph\" {
 ")
 
   (loop
+    :with cross := (make-hash-table)
     :for key :being :each :hash-value :in *keys*
     :if (and (user-id key)
              (or (optionp :invalid)
                  (validp key)))
+
       :do (print-graphviz-key-node key :indent 2)
           (loop
             :for cert :in (certificates-from key)
             :for from-key := (creator-key cert)
             :if (and (user-id from-key)
+                     (not (find from-key (gethash key cross)))
                      (or (optionp :invalid)
                          (valid-certificate-p from-key key)))
+
               :do (print-graphviz-edge
                    from-key key
                    :indent 4
                    :both
                    (when (and (optionp :two-way)
-                              (or (and (valid-certificate-p
-                                        from-key key)
-                                       (valid-certificate-p
-                                        key from-key))
+                              (or (and (valid-certificate-p from-key key)
+                                       (valid-certificate-p key from-key))
                                   (and (not (valid-certificate-p
                                              from-key key))
                                        (not (valid-certificate-p
                                              key from-key)))))
-                     (remove-certificates-from from-key key)
+                     (push key (gethash from-key cross))
                      t))))
 
   (format t "}~%"))

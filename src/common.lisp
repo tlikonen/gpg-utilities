@@ -19,7 +19,6 @@
            #:validp
            #:clean-all-keys
            #:valid-certificate-p
-           #:remove-certificates-from
            #:split-colon-string
            #:unescape-user-id
            #:parse-time-stamp
@@ -181,10 +180,6 @@
 
 (defun add-certificates-from (user-id cert)
   (pushnew cert (certificates-from user-id)))
-
-(defun remove-certificates-from (key creator-key)
-  (setf (certificates-from key)
-        (remove creator-key (certificates-from key) :key #'creator-key)))
 
 (defun split-colon-string (string)
   (loop :with items
