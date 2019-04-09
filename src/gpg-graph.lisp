@@ -112,12 +112,8 @@ digraph \"GnuPG key graph\" {
                    :indent 4
                    :both
                    (when (and (optionp :two-way)
-                              (or (and (valid-certificate-p from-key key)
-                                       (valid-certificate-p key from-key))
-                                  (and (not (valid-certificate-p
-                                             from-key key))
-                                       (not (valid-certificate-p
-                                             key from-key)))))
+                              (valid-certificate-p from-key key)
+                              (valid-certificate-p key from-key))
                      (push key (gethash from-key cross))
                      t))))
 
