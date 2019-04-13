@@ -18,7 +18,8 @@
            #:certificates-from
            #:validp
            #:clean-all-keys
-           #:valid-certificate-p
+           #:some-valid-certificates-p
+           #:only-invalid-certificates-p
            #:split-colon-string
            #:unescape-user-id
            #:parse-time-stamp
@@ -102,6 +103,9 @@
 
 (defclass revocation (certificate) nil)
 
+(defun time-stamp-expired-p (time)
+  (if time (<= time (get-universal-time)) nil))
+
 (defun target-key (cert)
   (key (target-uid cert)))
 
@@ -113,10 +117,10 @@
   (not (revoked uid)))
 
 (defmethod validp ((cert certificate))
-  (flet ((time-stamp-expired-p (time)
-           (if time (<= time (get-universal-time)) nil)))
-    (and (validp (target-uid cert))
-         (not (time-stamp-expired-p (expires cert))))))
+  (and (not (time-stamp-expired-p (expires cert)))
+       (validp (creator-key cert))
+       (validp (target-uid cert))
+       (validp (target-key cert))))
 
 (defun get-create-key (key-id)
   (or (gethash key-id *keys*)
@@ -167,13 +171,16 @@
                    (setf (certificates-from key)
                          (clean-cert-list certs #'creator-key)))))))
 
-(defun valid-certificate-p (from-key to-key)
-  (and (validp from-key)
-       (validp to-key)
-       (some (lambda (cert)
-               (and (eql from-key (creator-key cert))
-                    (validp cert)))
-             (certificates-from to-key))))
+(defun some-valid-certificates-p (from-key to-key)
+  (some (lambda (cert)
+          (and (eql from-key (creator-key cert))
+               (validp cert)))
+        (certificates-from to-key)))
+
+(defun only-invalid-certificates-p (from-key to-key)
+  (some (lambda (cert)
+          (eql from-key (creator-key cert)))
+        (remove-if #'validp (certificates-from to-key))))
 
 (defun add-certificates-for (key cert)
   (pushnew cert (certificates-for key)))
@@ -318,19 +325,17 @@
                 (format nil ", fontcolor=\"~A\", color=\"~:*~A\", style=dashed"
                         *graphviz-invalid-color*)))))
 
-(defun print-graphviz-edge (from-key to-key &key (indent 0) both
+(defun print-graphviz-edge (from-key to-key &key (indent 0) two-way
                                               (stream *standard-output*))
   (format stream "~V,2T\"~A\" -> \"~A\" [dir=~A~A];~%"
           indent (fingerprint from-key) (fingerprint to-key)
-          (if both "both" "forward")
-          (let ((cert (loop :for cert :in (certificates-for from-key)
-                            :if (eql (target-key cert) to-key) :return cert)))
-            (if (or (not (validp cert))
-                    (not (validp from-key))
-                    (not (validp to-key)))
-                (format nil ", color=\"~A\", style=dashed"
-                        *graphviz-invalid-color*)
-                ""))))
+          (if two-way "both" "forward")
+          (if (or (not (some-valid-certificates-p from-key to-key))
+                  (and two-way
+                       (not (some-valid-certificates-p to-key from-key))))
+              (format nil ", color=\"~A\", style=dashed"
+                      *graphviz-invalid-color*)
+              "")))
 
 (defun collect-key-data (stream)
   (loop

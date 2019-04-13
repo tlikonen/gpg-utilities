@@ -105,16 +105,16 @@ digraph \"GnuPG key graph\" {
             :if (and (user-ids from-key)
                      (not (find from-key (gethash key cross)))
                      (or (optionp :invalid)
-                         (valid-certificate-p from-key key)))
+                         (some-valid-certificates-p from-key key)))
 
-              :do (print-graphviz-edge
-                   from-key key
-                   :indent 4
-                   :both
-                   (when (and (optionp :two-way)
-                              (valid-certificate-p from-key key)
-                              (valid-certificate-p key from-key))
+              :do (cond
+                    ((and (optionp :two-way)
+                          (or (and (some-valid-certificates-p from-key key)
+                                   (some-valid-certificates-p key from-key))
+                              (and (only-invalid-certificates-p from-key key)
+                                   (only-invalid-certificates-p key from-key))))
                      (push key (gethash from-key cross))
-                     t))))
+                     (print-graphviz-edge from-key key :indent 4 :two-way t))
+                    (t (print-graphviz-edge from-key key :indent 4)))))
 
   (format t "}~%"))
