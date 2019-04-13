@@ -86,7 +86,6 @@ for help on that topic.
 Options:
 
   -h, --help
-
         Print this help text.~%~%" *program*))
 
 (defun main (&rest args)
