@@ -81,10 +81,9 @@ Options:
 
   (format t "~
 digraph \"GnuPG key graph\" {
-  overlap=scale;
-  splines=true;
-  node [shape=box];
-")
+overlap=scale;
+splines=true;
+node [shape=box];~%~%")
 
   (loop
     :with cross := (make-hash-table)
@@ -93,7 +92,7 @@ digraph \"GnuPG key graph\" {
              (or (optionp :invalid)
                  (validp key)))
 
-      :do (print-graphviz-key-node key :indent 2)
+      :do (print-graphviz-key-node key)
           (loop
             :for cert :in (certificates-from key)
             :for from-key := (creator-key cert)
@@ -109,7 +108,7 @@ digraph \"GnuPG key graph\" {
                               (and (only-invalid-certificates-p from-key key)
                                    (only-invalid-certificates-p key from-key))))
                      (push key (gethash from-key cross))
-                     (print-graphviz-edge from-key key :indent 4 :two-way t))
-                    (t (print-graphviz-edge from-key key :indent 4)))))
+                     (print-graphviz-edge from-key key :two-way t))
+                    (t (print-graphviz-edge from-key key)))))
 
   (format t "}~%"))

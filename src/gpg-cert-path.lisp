@@ -126,15 +126,14 @@ Options:
 
       (format t "~
 digraph \"GnuPG certificate path\" {
-  overlap=scale;
-  splines=true;
-  node [shape=box];
-")
+overlap=scale;
+splines=true;
+node [shape=box];~%~%")
 
       (loop :for key :in keys
-            :do (print-graphviz-key-node key :indent 2))
+            :do (print-graphviz-key-node key))
 
       (loop :for (key1 . key2) :in edges
-            :do (print-graphviz-edge key1 key2 :indent 2))
+            :do (print-graphviz-edge key1 key2))
 
       (format t "}~%"))))

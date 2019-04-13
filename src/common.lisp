@@ -300,8 +300,7 @@
 (defun escape-graphviz-label (string)
   (escape-characters string "\\" #\\))
 
-(defun print-graphviz-key-node (key &key (indent 0)
-                                      (stream *standard-output*))
+(defun print-graphviz-key-node (key)
 
   (let ((uids (if (optionp :all-user-ids)
                   (loop :for uid :in (user-ids key)
@@ -310,11 +309,11 @@
                           :collect (escape-graphviz-label (id-string uid)))
                   (list (escape-graphviz-label (primary-user-id key))))))
 
-    (format stream "~V,2T\"~A\"~%~V,2T  [label=\"~{~A\\l~}~A\"~A];~%"
-            indent (fingerprint key) indent
+    (format t "\"~A\"~%[label=\"\\~%~{~A\\l~^\\~%~}~A\"~A];~%~%"
+            (fingerprint key)
             uids
             (if (optionp :fingerprint)
-                (format nil "~?"
+                (format nil "\\~%~?"
                         (if (>= (reduce #'max uids :key #'length) 55)
                             "~{~A~^ ~}\\l"
                             "~{~A ~A ~A ~A ~A~^ ...\\l... ~}\\l")
@@ -322,13 +321,12 @@
                 "")
             (if (validp key)
                 ""
-                (format nil ", fontcolor=\"~A\", color=\"~:*~A\", style=dashed"
+                (format nil ",~%fontcolor=\"~A\", color=\"~:*~A\", style=dashed"
                         *graphviz-invalid-color*)))))
 
-(defun print-graphviz-edge (from-key to-key &key (indent 0) two-way
-                                              (stream *standard-output*))
-  (format stream "~V,2T\"~A\" -> \"~A\" [dir=~A~A];~%"
-          indent (fingerprint from-key) (fingerprint to-key)
+(defun print-graphviz-edge (from-key to-key &key two-way)
+  (format t "\"~A\"~%-> \"~A\"~%[dir=~A~A];~%~%"
+          (fingerprint from-key) (fingerprint to-key)
           (if two-way "both" "forward")
           (if (or (not (some-valid-certificates-p from-key to-key))
                   (and two-way
