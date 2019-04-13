@@ -12,7 +12,7 @@
            #:getopt
            #:exit-program #:code
            #:key
-           #:user-id
+           #:user-ids
            #:fingerprint
            #:creator-key
            #:certificates-from
@@ -89,7 +89,7 @@
 
 (defclass primary-user-id (user-id) nil)
 
-(defun user-id (key)
+(defun primary-user-id (key)
   (loop :for uid :in (user-ids key)
         :if (typep uid 'primary-user-id)
           :return (id-string uid)))
@@ -301,7 +301,7 @@
                         :if (or (optionp :invalid)
                                 (validp uid))
                           :collect (escape-graphviz-label (id-string uid)))
-                  (list (escape-graphviz-label (user-id key))))))
+                  (list (escape-graphviz-label (primary-user-id key))))))
 
     (format stream "~V,2T\"~A\"~%~V,2T  [label=\"~{~A\\l~}~A\"~A];~%"
             indent (fingerprint key) indent

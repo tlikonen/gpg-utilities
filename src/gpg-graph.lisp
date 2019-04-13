@@ -94,7 +94,7 @@ digraph \"GnuPG key graph\" {
   (loop
     :with cross := (make-hash-table)
     :for key :being :each :hash-value :in *keys*
-    :if (and (user-id key)
+    :if (and (user-ids key)
              (or (optionp :invalid)
                  (validp key)))
 
@@ -102,7 +102,7 @@ digraph \"GnuPG key graph\" {
           (loop
             :for cert :in (certificates-from key)
             :for from-key := (creator-key cert)
-            :if (and (user-id from-key)
+            :if (and (user-ids from-key)
                      (not (find from-key (gethash key cross)))
                      (or (optionp :invalid)
                          (valid-certificate-p from-key key)))
