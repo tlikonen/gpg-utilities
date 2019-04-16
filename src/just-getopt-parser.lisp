@@ -19,6 +19,11 @@
 
 (in-package #:just-getopt-parser)
 
+(defun format-option-name (name)
+  (etypecase name
+    (string (format nil "--~A" name))
+    (character (format nil "-~C" name))))
+
 (define-condition argument-error (error)
   ((option :reader option-name :initarg :option
            :type (or character string))))
@@ -32,10 +37,7 @@ the condition object.")
   (:report
    (lambda (condition stream)
      (format stream "Unknown option \"~A\"."
-             (let ((name (option-name condition)))
-               (typecase name
-                 (string (format nil "--~A" name))
-                 (character (format nil "-~C" name))))))))
+             (format-option-name (option-name condition))))))
 
 (define-condition ambiguous-option (argument-error)
   ((matches :reader option-matches :initarg :matches))
@@ -47,8 +49,8 @@ condition object. Function `option-matches` will return the matching
 options.")
   (:report
    (lambda (condition stream)
-     (format stream "Option \"--~A\" is ambiguous: ~{\"--~A\"~^, ~}."
-             (option-name condition)
+     (format stream "Option \"~A\" is ambiguous: ~{\"--~A\"~^, ~}."
+             (format-option-name (option-name condition))
              (option-matches condition)))))
 
 (define-condition required-argument-missing (argument-error)
@@ -60,10 +62,7 @@ be used to read option's name from the condition object.")
   (:report
    (lambda (condition stream)
      (format stream "Required argument missing for option \"~A\"."
-             (let ((name (option-name condition)))
-               (typecase name
-                 (string (format nil "--~A" name))
-                 (character (format nil "-~C" name))))))))
+             (format-option-name (option-name condition))))))
 
 (define-condition argument-not-allowed (argument-error)
   ()
@@ -74,8 +73,8 @@ Function `option-name` can be used to read option's name from the
 condition object.")
   (:report
    (lambda (condition stream)
-     (format stream "Argument is not allowed for option \"--~A\"."
-             (option-name condition)))))
+     (format stream "Argument is not allowed for option \"~A\"."
+             (format-option-name (option-name condition))))))
 
 (defun check-option-identifier (identifier)
   (assert (symbolp identifier)
@@ -99,7 +98,7 @@ condition object.")
 (defun check-option-name (name)
   (assert (or (characterp name)
               (stringp name))
-          nil "Option name must be character or string.")
+          nil "Option name must be a character or a string.")
   (etypecase name
     (character (check-short-option-character name))
     (string (check-long-option-string name))))
@@ -108,7 +107,7 @@ condition object.")
   (assert (or (null field)
               (eql :required field)
               (eql :optional field))
-          nil "Options' argument type must be ~
+          nil "Options' argument type must be symbol ~
                 NIL, :REQUIRED or :OPTIONAL."))
 
 (defun check-duplicate-names (specification)
@@ -131,20 +130,26 @@ condition object.")
             (check-option-argument (third option-spec)))
   (check-duplicate-names specification))
 
-(defun prefix-match-long-option (name specification)
-  (loop :for opt-spec :in specification
+(defun match-long-option (name specification &key prefix)
+  (loop :with matches
+        :for opt-spec :in specification
         :for option-name := (second opt-spec)
-        :if (and (stringp option-name)
-                 (string= name option-name
-                          :end2 (min (length name)
-                                     (length option-name))))
-          :collect opt-spec))
+        :if (stringp option-name)
+          :do (cond ((string= name option-name)
+                     (return (list opt-spec)))
+                    ((and prefix
+                          (string= name option-name
+                                   :end2 (min (length name)
+                                              (length option-name))))
+                     (push opt-spec matches)))
+        :finally
+           (return (sort matches #'string< :key #'second))))
 
 (defun getopt (arguments option-specification
                &key options-everywhere
                  prefix-match-long-options error-on-ambiguous-option
                  error-on-unknown-option error-on-argument-missing
-                 error-on-argument-not-allowed )
+                 error-on-argument-not-allowed)
 
   "Parse command-line arguments like getopt.
 
@@ -323,14 +328,9 @@ argument. It means that the argument is empty string."
                     (equal-pos (position #\= name-arg))
                     (opt-name (subseq name-arg 0 equal-pos))
                     (opt-arg (if equal-pos (subseq name-arg (1+ equal-pos))))
-                    (option-spec
-                      (if prefix-match-long-options
-                          (prefix-match-long-option
-                           opt-name option-specification)
-                          (let ((match (find opt-name option-specification
-                                             :key #'second
-                                             :test #'equal)))
-                            (if match (list match)))))
+                    (option-spec (match-long-option
+                                  opt-name option-specification
+                                  :prefix prefix-match-long-options))
                     (osymbol (first (first option-spec)))
                     (oname (second (first option-spec)))
                     (oargument (third (first option-spec))))
