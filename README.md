@@ -99,8 +99,8 @@ To install the files in the default locations run this command:
 `make` command will also save some configuration variables to
 `config.mk` file. The default installation target is `~/bin` for
 executable files. You can configure different install location as well
-as `gpg` executable locatation with Makefile variables and save them to
-a configuration file for later runs. For example:
+as `gpg` executable location with Makefile variables and save them to a
+configuration file for later runs. For example:
 
     $ make clean-all
     $ make config bindir=/usr/local/bin gpg=/usr/local/bin/gpg
