@@ -22,7 +22,7 @@ arguments must be 40-character key fingerprints.
 Graphviz comes with tools like \"dot\", \"neato\", \"fdp\" etc. which
 use different algorithms for drawing nodes and edges. Example:
 
-  $ gpg-cert-path <from-key> <to-key> | dot -Tpng > trust-path.png
+    gpg-cert-path FROM-KEY TO-KEY | dot -Tpng > trust-path.png
 
 Options:
 

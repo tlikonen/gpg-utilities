@@ -23,7 +23,7 @@ gpg(1) manual for help on that topic.
 Graphviz comes with tools like \"dot\", \"neato\", \"fdp\" etc. which
 use different algorithms for drawing nodes and edges. Example:
 
-  $ gpg-graph [key1 ...] | dot -Tpng > web-of-trust.png
+    gpg-graph ... | dot -Tpng > web-of-trust.png
 
 Options:
 
