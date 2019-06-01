@@ -10,8 +10,8 @@ The Programs
 ### GPG Tofu
 
 `gpg-tofu` is a command-line tool which inputs public key data from
-`gpg` ([GnuPG][]) security tool and outputs "trust on first use" (TOFU)
-statistics about the keys. It is analogous to `gpg --list-keys` command
+[GnuPG][] (`gpg`) security tool and outputs "trust on first use" (TOFU)
+statistics about the keys. It is similar to `gpg --list-keys` command
 but only with TOFU statistics.
 
 Usage: `gpg-tofu [options] [--] [key1 ...]`
@@ -31,7 +31,7 @@ Use `-h` or `--help` option to print help text.
 ### GPG Graph
 
 `gpg-graph` finds how [GnuPG][] keys are connected by certificates (web
-of trust) and outputs graph data in [Graphviz][] format. Graphviz can
+of trust) and outputs a graph data in [Graphviz][] format. Graphviz can
 then be used to draw web of trust images.
 
 Usage: `gpg-graph [options] [--] [key1 ...]`
