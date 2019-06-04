@@ -298,7 +298,7 @@
               (princ char out))))
 
 (defun escape-graphviz-label (string)
-  (escape-characters string "\\" #\\))
+  (escape-characters string '(#\" #\\) #\\))
 
 (defun print-graphviz-key-node (key)
 
