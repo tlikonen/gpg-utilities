@@ -94,22 +94,21 @@ To build the necessary files run this command:
 
 To install the files in the default locations run this command:
 
-    $ make install
-
-`make` command will also save some configuration variables to
-`config.mk` file. The default installation target is `~/bin` for
-executable files. You can configure different install location as well
-as `gpg` executable location with Makefile variables and save them to a
-configuration file for later runs. For example:
-
-    $ make clean-all
-    $ make config bindir=/usr/local/bin gpg=/usr/local/bin/gpg
-    $ make
     $ sudo make install
 
+By default the default installation target is under `/usr/local`
+directory. You can configure different directory hierarchy with makefile
+variable `prefix` or separately for executable files with `bindir` and
+library files with `libdir`. Variable `sbcl` defines the SBCL path and
+variable `gpg` the GnuPG path. Variables are stored in `config.mk` file.
+Use the same target location variables in compiling and installing.
+
+    $ make clean-all
+    $ make sbcl=/usr/local/bin/sbcl bindir=~/bin libdir=~/.local/lib
+    $ make install
+
 To uninstall all files run command `make uninstall` with the same
-configuration as during installation. You can clean build files with
-`make clean` or `make clean-all` (which deletes also the configuration).
+configuration variables as during installation.
 
 [SBCL]:   http://sbcl.org/
 [Debian]: https://www.debian.org/

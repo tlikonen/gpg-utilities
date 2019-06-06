@@ -1,7 +1,2 @@
+build/
 config.mk
-gpg-cert-path
-gpg-count-steps
-gpg-graph
-gpg-tofu
-gpg-utilities
-*.fasl

@@ -1,51 +1,45 @@
-bindir = $(HOME)/bin
-sbcl = sbcl
+prefix = /usr/local
+bindir = $(prefix)/bin
+libdir = $(prefix)/lib
+sbcl = /usr/bin/sbcl
 gpg = gpg
 src = src/*.asd src/*.lisp
-links = gpg-tofu gpg-graph gpg-cert-path gpg-count-steps
-conf = config.mk
+prg = gpg-tofu gpg-graph gpg-cert-path gpg-count-steps
 
--include $(conf)
+-include config.mk
 
-all: $(links)
+all: $(patsubst %,build/%,$(prg))
 
-gpg-utilities: $(src)
-	$(sbcl) --script make-image.lisp '$(gpg)'
+$(patsubst %,build/%,$(prg)): $(src)
+	$(sbcl) --script make.lisp $(patsubst build/%,%,$@) '$(gpg)' '$(libdir)/gpg-utilities/'
 
-$(links): gpg-utilities
-	ln -f gpg-utilities $@
-
-config: $(conf)
-
-$(conf):
-	@echo "sbcl = $(sbcl)" > $@
+config.mk:
+	@echo "bindir = $(bindir)" > $@
+	@echo "libdir = $(libdir)" >> $@
+	@echo "sbcl = $(sbcl)" >> $@
 	@echo "gpg = $(gpg)" >> $@
-	@echo "bindir = $(bindir)" >> $@
-	@echo --- $@
-	@cat $@
-	@echo ---
+	@echo "Write $@"
 
 install:
-	install -d -m 755 $(bindir)
-	install -m 755 gpg-utilities $(bindir)
-	cd $(bindir) && { \
-		ln -f gpg-utilities gpg-tofu; \
-		ln -f gpg-utilities gpg-graph; \
-		ln -f gpg-utilities gpg-cert-path; \
-		ln -f gpg-utilities gpg-count-steps; \
-		}
+	install -d -m 755 "$(bindir)" "$(libdir)/gpg-utilities"
+	install -m 755 build/gpg-tofu "$(bindir)"
+	install -m 755 build/gpg-graph "$(bindir)"
+	install -m 755 build/gpg-cert-path "$(bindir)"
+	install -m 755 build/gpg-count-steps "$(bindir)"
+	install -m 644 build/gpg-utilities.asd "$(libdir)/gpg-utilities"
+	install -m 644 build/gpg-utilities--all-systems.fasl "$(libdir)/gpg-utilities"
 
 uninstall:
-	rm -f $(bindir)/gpg-tofu
-	rm -f $(bindir)/gpg-graph
-	rm -f $(bindir)/gpg-cert-path
-	rm -f $(bindir)/gpg-count-steps
-	rm -f $(bindir)/gpg-utilities
+	rm -f "$(bindir)/gpg-tofu"
+	rm -f "$(bindir)/gpg-graph"
+	rm -f "$(bindir)/gpg-cert-path"
+	rm -f "$(bindir)/gpg-count-steps"
+	rm -fr "$(libdir)/gpg-utilities"
 
 clean:
-	rm -f -- gpg-utilities $(links) src/*.fasl
+	rm -fr build
 
-clean-all: clean
-	rm -f $(conf)
+clean-all:
+	rm -f config.mk
 
-.PHONY: all config install uninstall clean clean-all
+.PHONY: all install uninstall clean clean-all
