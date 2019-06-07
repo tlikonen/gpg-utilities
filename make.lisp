@@ -16,15 +16,15 @@
     (let ((*print-pretty* t)
           (*print-right-margin* 78)
           (*print-case* :downcase))
-      (format f "#!~A --script~%" *sbcl*)
-      (format f "~{~S~%~}"
-              (list '(require "asdf")
-                    (list 'asdf:initialize-source-registry
-                          (list 'quote
-                                (list :source-registry
-                                      :ignore-inherited-configuration
-                                      (list :directory *lib*))))
-                    '(asdf:operate 'asdf:monolithic-load-bundle-op
-                      "gpg-utilities")
-                    (list 'setf 'common:*gpg-program* *gpg*)
-                    (list 'start:start *cmd*))))))
+      (format f "#!~A --script~%~@{~S~%~}"
+              *sbcl*
+              '(require "asdf")
+              (list 'asdf:initialize-source-registry
+                    (list 'quote
+                          (list :source-registry
+                                :ignore-inherited-configuration
+                                (list :directory *lib*))))
+              '(asdf:operate 'asdf:monolithic-load-bundle-op
+                "gpg-utilities")
+              (list 'setf 'common:*gpg-program* *gpg*)
+              (list 'start:start *cmd*)))))
