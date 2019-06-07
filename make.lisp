@@ -3,22 +3,11 @@
 (defparameter *gpg* (or (nth 2 sb-ext:*posix-argv*) "gpg"))
 (defparameter *lib* (sb-ext:native-pathname (nth 3 sb-ext:*posix-argv*)))
 
-(require "asdf")
+(load "asdf.conf")
+(load "quicklisp/setup.lisp")
+(ql:quickload "gpg-utilities")
 
-(asdf:initialize-output-translations
- (list :output-translations
-       :ignore-inherited-configuration
-       (list (merge-pathnames "**/*.*")
-             (merge-pathnames "build/**/*.*"))))
-
-(asdf:initialize-source-registry
- (list :source-registry
-       :ignore-inherited-configuration
-       (list :directory (merge-pathnames "src/"))))
-
-(let ((*compile-print* nil))
-  (asdf:operate 'asdf:load-op "gpg-utilities")
-  (asdf:operate 'asdf:monolithic-deliver-asd-op "gpg-utilities"))
+(asdf:operate 'asdf:monolithic-deliver-asd-op "gpg-utilities")
 
 (with-open-file (f (format nil "build/~A" *cmd*) :direction :output
                                                  :if-does-not-exist :create

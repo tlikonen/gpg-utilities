@@ -10,8 +10,18 @@ prg = gpg-tofu gpg-graph gpg-cert-path gpg-count-steps
 
 all: $(patsubst %,build/%,$(prg))
 
-$(patsubst %,build/%,$(prg)): $(src)
+$(patsubst %,build/%,$(prg)): $(src) quicklisp/setup.lisp
 	$(sbcl) --script make.lisp $(patsubst build/%,%,$@) '$(gpg)' '$(libdir)/gpg-utilities/'
+
+quicklisp/install.lisp:
+	mkdir -p quicklisp
+	wget -O $@ "http://beta.quicklisp.org/quicklisp.lisp"
+
+quicklisp/setup.lisp: quicklisp/install.lisp
+	$(sbcl) --noinform --no-sysinit --no-userinit --non-interactive \
+		--load asdf.conf \
+		--load quicklisp/install.lisp \
+		--eval '(quicklisp-quickstart:install :path "quicklisp/")'
 
 config.mk:
 	@echo "bindir = $(bindir)" > $@
@@ -40,6 +50,7 @@ clean:
 	rm -fr build
 
 distclean: clean
+	rm -fr quicklisp
 	rm -f config.mk
 
 .PHONY: all install uninstall clean distclean
