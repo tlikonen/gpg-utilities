@@ -28,7 +28,7 @@ config.mk:
 	@echo "libdir = $(libdir)" >> $@
 	@echo "sbcl = $(sbcl)" >> $@
 	@echo "gpg = $(gpg)" >> $@
-	@echo "Write $@"
+	@cat $@
 
 install:
 	install -d -m 755 "$(bindir)" "$(libdir)/gpg-utilities"
