@@ -5,20 +5,9 @@
 
 (defpackage #:start
   (:use #:cl)
-  (:export #:start #:*command*))
+  (:export #:start))
 
 (in-package #:start)
-
-(defun print-usage ()
-  (format t "~
-Usage: gpg-utilities <subcommand> [options or arguments]
-
-Subcommands: tofu, graph, cert-path and count-steps. A subcommand is
-executed automatically if this program is started with any of the
-following names: gpg-tofu, gpg-graph, gpg-cert-path or gpg-count-steps.
-
-Option \"-h\" or \"--help\" for a subcommand prints help on that
-specific subcommand.~%~%"))
 
 (defun start (command)
   (handler-bind
@@ -49,6 +38,6 @@ specific subcommand.~%~%"))
          (apply #'cert-path:main args))
         ((equal command "gpg-count-steps")
          (apply #'count-steps:main args))
-        (t (print-usage)))
+        (t (error "Invalid argument for START function.")))
 
       (common:exit-program 0))))
