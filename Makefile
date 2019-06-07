@@ -39,7 +39,7 @@ uninstall:
 clean:
 	rm -fr build
 
-clean-all:
+distclean: clean
 	rm -f config.mk
 
-.PHONY: all install uninstall clean clean-all
+.PHONY: all install uninstall clean distclean

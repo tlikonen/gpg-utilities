@@ -103,7 +103,7 @@ library files with `libdir`. Variable `sbcl` defines the SBCL path and
 variable `gpg` the GnuPG path. Variables are stored in `config.mk` file.
 Use the same target location variables in compiling and installing.
 
-    $ make clean-all
+    $ make distclean
     $ make sbcl=/usr/local/bin/sbcl bindir=~/bin libdir=~/.local/lib
     $ make install
 
