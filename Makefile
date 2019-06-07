@@ -26,8 +26,8 @@ install:
 	install -m 755 build/gpg-graph "$(bindir)"
 	install -m 755 build/gpg-cert-path "$(bindir)"
 	install -m 755 build/gpg-count-steps "$(bindir)"
-	install -m 644 build/gpg-utilities.asd "$(libdir)/gpg-utilities"
-	install -m 644 build/gpg-utilities--all-systems.fasl "$(libdir)/gpg-utilities"
+	install -m 644 build/src/gpg-utilities.asd "$(libdir)/gpg-utilities"
+	install -m 644 build/src/gpg-utilities--all-systems.fasl "$(libdir)/gpg-utilities"
 
 uninstall:
 	rm -f "$(bindir)/gpg-tofu"

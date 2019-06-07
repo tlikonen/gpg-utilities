@@ -8,8 +8,8 @@
 (asdf:initialize-output-translations
  (list :output-translations
        :ignore-inherited-configuration
-       (list (merge-pathnames "src/*.*")
-             (merge-pathnames "build/*.*"))))
+       (list (merge-pathnames "**/*.*")
+             (merge-pathnames "build/**/*.*"))))
 
 (asdf:initialize-source-registry
  (list :source-registry
