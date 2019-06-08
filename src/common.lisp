@@ -290,15 +290,8 @@
         Maybe there is no connection or at least not in this keyring~%~
         or within the maximum of ~D steps." *shortest-path-max-steps*))))))
 
-(defun escape-characters (string esc-chars esc)
-  (with-output-to-string (out)
-    (loop :for char :across string
-          :do (when (find char esc-chars)
-                (princ esc out))
-              (princ char out))))
-
 (defun escape-graphviz-label (string)
-  (escape-characters string '(#\" #\\) #\\))
+  (string-io:escape-characters string '(#\" #\\) #\\))
 
 (defun print-graphviz-key-node (key)
 
