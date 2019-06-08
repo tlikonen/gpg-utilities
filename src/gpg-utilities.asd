@@ -12,5 +12,5 @@
                                "gpg-tofu" "gpg-graph"
                                "gpg-cert-path"
                                "gpg-count-steps"))
-   (:file "common" :depends-on ("c-strings"))
-   (:file "c-strings")))
+   (:file "common" :depends-on ("string-io"))
+   (:file "string-io")))
