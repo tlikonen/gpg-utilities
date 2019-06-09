@@ -46,7 +46,12 @@
               (full-years (truncate seconds seconds-in-year))
               (days (round (- seconds (* full-years seconds-in-year))
                            seconds-in-day)))
-         (format nil "~D year~:*~P ~D day~:*~P" full-years days))))))
+         (cond ((= days 0)
+                (format nil "~D years" full-years))
+               ((= days 365)
+                (format nil "~D years" (1+ full-years)))
+               (t (format nil "~D year~:*~P ~D day~:*~P"
+                          full-years days))))))))
 
 (defun center-string (string width)
   (if (<= width (length string))
