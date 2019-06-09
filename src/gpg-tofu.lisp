@@ -12,12 +12,14 @@
 (defvar *program* "gpg-tofu")
 
 (defun format-time-stamp (universal-time)
-  (multiple-value-bind (second minute hour date month year
-                        day daylight-p zone)
-      (decode-universal-time universal-time 0)
-    (declare (ignore day daylight-p zone))
-    (format nil "~4,'0D-~2,'0D-~2,'0D ~2,'0D:~2,'0D:~2,'0DZ"
-            year month date hour minute second)))
+  (local-time:format-timestring
+   nil
+   (local-time:universal-to-timestamp universal-time)
+   :format '((:year 4) "-" (:month 2) "-" (:day 2) " "
+             (:hour 2) ":" (:min 2) ":" (:sec 2) :gmt-offset-or-z)
+   :timezone (if (optionp :utc)
+                 local-time:+utc-zone+
+                 local-time:*default-timezone*)))
 
 (defun format-time-interval (seconds)
   (let* ((seconds-in-day #. (* 60 60 24))
@@ -85,12 +87,16 @@ for help on that topic.
 
 Options:
 
+  --utc
+        Display time stamps in UTC time.
+
   -h, --help
         Print this help text.~%~%" *program*))
 
 (defun main (&rest args)
   (getopt args '((:help #\h)
-                 (:help "help")))
+                 (:help "help")
+                 (:utc "utc")))
 
   (when (optionp :help)
     (print-usage)

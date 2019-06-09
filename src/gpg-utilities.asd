@@ -2,7 +2,7 @@
   :description "Utilities for GnuPG security tool"
   :author "Teemu Likonen <tlikonen@iki.fi>"
   :licence "Creative Commons CC0 (public domain dedication)"
-  :depends-on ("just-getopt-parser")
+  :depends-on ("local-time" "just-getopt-parser")
   :components
   ((:file "gpg-tofu" :depends-on ("common"))
    (:file "gpg-graph" :depends-on ("common"))
