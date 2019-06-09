@@ -74,8 +74,22 @@
                      width)
       ""))
 
+(defparameter *echo-buffer* (make-array 200 :element-type 'character
+                                            :adjustable t
+                                            :fill-pointer 0))
+
 (defun echo (format &rest arguments)
-  (apply #'format t format arguments))
+  (loop :for c :across (apply #'format nil format arguments)
+        :do (vector-push-extend c *echo-buffer*)))
+
+(defun echo-buffer-length ()
+  (length *echo-buffer*))
+
+(defmacro with-echo-buffer (&body body)
+  `(progn
+     (setf (fill-pointer *echo-buffer*) 0)
+     (multiple-value-prog1 (progn ,@body)
+       (princ *echo-buffer*))))
 
 (defun print-usage ()
   (format t "~
@@ -122,13 +136,13 @@ Options:
             (cond
               ((string= "pub" (nth 0 fields))
                (setf expect '(:fpr))
-               (when want-empty-line (echo "~%"))
+               (when want-empty-line (format t "~%"))
                (setf want-empty-line t))
 
               ((and (member :fpr expect)
                     (string= "fpr" (nth 0 fields)))
                (setf expect '(:uid))
-               (echo "pub ~A~%" (nth 9 fields)))
+               (format t "pub ~A~%" (nth 9 fields)))
 
               ((string= "sub" (nth 0 fields))
                (setf expect nil))
@@ -136,9 +150,9 @@ Options:
               ((and (member :uid expect)
                     (string= "uid" (nth 0 fields)))
                (setf expect '(:tfs :uid))
-               (echo "uid [~8A] ~A~%"
-                     (format-validity (nth 1 fields) 8)
-                     (unescape-user-id (nth 9 fields))))
+               (format t "uid [~8A] ~A~%"
+                       (format-validity (nth 1 fields) 8)
+                       (unescape-user-id (nth 9 fields))))
 
               ((and (member :tfs expect)
                     (string= "tfs" (nth 0 fields))
@@ -153,45 +167,49 @@ Options:
                      (encryption-first (parse-time-stamp (nth 8 fields)))
                      (encryption-last (parse-time-stamp (nth 9 fields))))
 
-                 (echo "    TOFU validity: (~D/4) ~A, TOFU policy: ~A~%"
-                       tofu-validity
-                       (case tofu-validity
-                         (0 "conflict")
-                         (1 "no history")
-                         (2 "little history")
-                         (3 "enough history for basic trust")
-                         (4 "a lot of history for trust")
-                         (t "unknown"))
-                       policy)
+                 (format t "    TOFU validity: (~D/4) ~A, TOFU policy: ~A~%"
+                         tofu-validity
+                         (case tofu-validity
+                           (0 "conflict")
+                           (1 "no history")
+                           (2 "little history")
+                           (3 "enough history for basic trust")
+                           (4 "a lot of history for trust")
+                           (t "unknown"))
+                         policy)
 
                  (when (plusp signature-count)
-                   (echo "    ~D signature~:*~P" signature-count)
-                   (when (and signature-first signature-last)
-                     (cond
-                       ((plusp (- signature-last signature-first))
-                        (echo " in ~A" (format-time-interval
-                                        (- signature-last signature-first)))
-                        (echo ", first: ~A"
-                              (format-time-stamp signature-first))
-                        (echo ", last: ~A"
-                              (format-time-stamp signature-last)))
-                       ((= signature-last signature-first)
-                        (echo " in ~A" (format-time-stamp signature-last))))
-                     (echo "~%")))
+                   (with-echo-buffer
+                     (echo "    ~D signature~:*~P" signature-count)
+                     (when (and signature-first signature-last)
+                       (cond
+                         ((plusp (- signature-last signature-first))
+                          (echo " in ~A" (format-time-interval
+                                          (- signature-last
+                                             signature-first)))
+                          (let ((indent (+ 2 (echo-buffer-length))))
+                            (echo ", first: ~A~%"
+                                  (format-time-stamp signature-first))
+                            (echo "~VTlast:  ~A" indent
+                                  (format-time-stamp signature-last))))
+                         ((= signature-last signature-first)
+                          (echo " in ~A" (format-time-stamp signature-last))))
+                       (echo "~%"))))
 
                  (when (plusp encryption-count)
-                   (echo "    ~D encryption~:*~P" encryption-count)
-                   (when (and encryption-first encryption-last)
-                     (cond
-                       ((plusp (- encryption-last encryption-first))
-                        (echo " in ~A"
-                              (format-time-interval
-                               (- encryption-last encryption-first)))
-                        (echo ", first: ~A"
-                              (format-time-stamp encryption-first))
-                        (echo ", last: ~A"
-                              (format-time-stamp encryption-last)))
-                       ((= encryption-last encryption-first)
-                        (echo " in ~A"
-                              (format-time-stamp encryption-last))))
-                     (echo "~%")))))))))
+                   (with-echo-buffer
+                     (echo "    ~D encryption~:*~P" encryption-count)
+                     (when (and encryption-first encryption-last)
+                       (cond
+                         ((plusp (- encryption-last encryption-first))
+                          (echo " in ~A" (format-time-interval
+                                          (- encryption-last
+                                             encryption-first)))
+                          (let ((indent (+ 2 (echo-buffer-length))))
+                            (echo ", first: ~A~%"
+                                  (format-time-stamp encryption-first))
+                            (echo "~VTlast:  ~A" indent
+                                  (format-time-stamp encryption-last))))
+                         ((= encryption-last encryption-first)
+                          (echo " in ~A" (format-time-stamp encryption-last))))
+                       (echo "~%"))))))))))
