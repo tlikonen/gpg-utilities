@@ -24,7 +24,10 @@
                           (list :source-registry
                                 :ignore-inherited-configuration
                                 (list :directory *lib*))))
-              '(asdf:operate 'asdf:monolithic-load-bundle-op
-                "gpg-utilities")
+              '(handler-case
+                (asdf:operate 'asdf:monolithic-load-bundle-op "gpg-utilities")
+                (serious-condition (c)
+                 (format *error-output* "~A~%" c)
+                 (sb-ext:exit :code 1)))
               (list 'setf 'common:*gpg-program* *gpg*)
               (list 'start:start *cmd*)))))
