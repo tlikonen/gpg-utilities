@@ -56,9 +56,8 @@
 (defun center-string (string width)
   (if (<= width (length string))
       string
-      (let ((spaces (- width (length string))))
-        (replace (make-string width :initial-element #\space)
-                 string :start1 (ceiling spaces 2)))))
+      (replace (make-string width :initial-element #\space)
+               string :start1 (ceiling (- width (length string)) 2))))
 
 (defun format-validity (string &optional (width 0))
   (if (plusp (length string))
