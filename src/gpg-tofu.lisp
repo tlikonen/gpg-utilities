@@ -21,37 +21,27 @@
                  local-time:+utc-zone+
                  local-time:*default-timezone*)))
 
-(defun format-time-interval (seconds)
-  (let* ((seconds-in-day #. (* 60 60 24))
-         (days (round seconds seconds-in-day))
-         (hours (round seconds 3600))
-         (minutes (round seconds 60)))
+(defun format-time-duration (time1 time2)
+  (let* ((duration (date-time:decoded-time-duration time1 time2))
+         (y (date-time:years duration))
+         (m (date-time:months duration))
+         (d (date-time:days duration))
+         (h (date-time:hours duration))
+         (min (date-time:minutes duration))
+         (s (date-time:seconds duration)))
+
     (cond
-      ((and (<= 0 seconds)
-            (< seconds 60))
-       (format nil "~D second~:*~P" seconds))
-      ((and (<= 0 minutes)
-            (< minutes 60))
-       (format nil "~D minute~:*~P" minutes))
-      ((and (<= 1 hours)
-            (< hours 24))
-       (format nil "~D hour~:*~P" hours))
-      ((and (<= 1 days)
-            (< days 365))
-       (format nil "~D day~:*~P" days))
-      ((= 365 days)
-       (format nil "1 year"))
-      ((< 365 days)
-       (let* ((seconds-in-year #. (* 60 60 24 365))
-              (full-years (truncate seconds seconds-in-year))
-              (days (round (- seconds (* full-years seconds-in-year))
-                           seconds-in-day)))
-         (cond ((= days 0)
-                (format nil "~D years" full-years))
-               ((= days 365)
-                (format nil "~D years" (1+ full-years)))
-               (t (format nil "~D year~:*~P ~D day~:*~P"
-                          full-years days))))))))
+      ((= 0 y m d h min)
+       (format nil "~D second~:*~P" s))
+      ((= 0 y m d h)
+       (format nil "~D minute~:*~P ~D second~:*~P" min s))
+      ((= 0 y m d)
+       (format nil "~D hour~:*~P ~D minute~:*~P" h min))
+      ((= 0 y m)
+       (format nil "~D day~:*~P ~D hour~:*~P" d h))
+      ((= 0 y)
+       (format nil "~D month~:*~P ~D day~:*~P" m d))
+      (t (format nil "~D year~:*~P ~D month~:*~P ~D day~:*~P" y m d)))))
 
 (defun center-string (string width)
   (if (<= width (length string))
@@ -188,9 +178,8 @@ Options:
                      (when (and signature-first signature-last)
                        (cond
                          ((plusp (- signature-last signature-first))
-                          (echo " in ~A" (format-time-interval
-                                          (- signature-last
-                                             signature-first)))
+                          (echo " in ~A" (format-time-duration
+                                          signature-first signature-last))
                           (let ((indent (+ 2 (echo-buffer-length))))
                             (echo ", first: ~A~%"
                                   (format-time-stamp signature-first))
@@ -206,9 +195,8 @@ Options:
                      (when (and encryption-first encryption-last)
                        (cond
                          ((plusp (- encryption-last encryption-first))
-                          (echo " in ~A" (format-time-interval
-                                          (- encryption-last
-                                             encryption-first)))
+                          (echo " in ~A" (format-time-duration
+                                          encryption-first encryption-last))
                           (let ((indent (+ 2 (echo-buffer-length))))
                             (echo ", first: ~A~%"
                                   (format-time-stamp encryption-first))

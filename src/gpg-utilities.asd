@@ -4,7 +4,7 @@
   :licence "Creative Commons CC0 (public domain dedication)"
   :depends-on ("local-time" "just-getopt-parser")
   :components
-  ((:file "gpg-tofu" :depends-on ("common"))
+  ((:file "gpg-tofu" :depends-on ("common" "date-time"))
    (:file "gpg-graph" :depends-on ("common"))
    (:file "gpg-cert-path" :depends-on ("common"))
    (:file "gpg-count-steps" :depends-on ("common"))
@@ -13,4 +13,5 @@
                                "gpg-cert-path"
                                "gpg-count-steps"))
    (:file "common" :depends-on ("string-io"))
-   (:file "string-io")))
+   (:file "string-io")
+   (:file "date-time")))
