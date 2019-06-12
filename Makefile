@@ -1,7 +1,7 @@
 prefix = /usr/local
 bindir = $(prefix)/bin
 libdir = $(prefix)/lib
-sbcl = /usr/bin/sbcl
+sbcl = $(shell which sbcl)
 gpg = gpg
 src = src/*.asd src/*.lisp
 prg = gpg-tofu gpg-graph gpg-cert-path gpg-count-steps
