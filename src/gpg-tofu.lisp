@@ -80,7 +80,8 @@ for help on that topic.
 Options:
 
   --utc
-        Display time stamps in UTC time.
+        Display time stamps in UTC time. (The default is local time
+        zone.)
 
   -h, --help
         Print this help text.~%~%" *program*))
