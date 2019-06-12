@@ -161,11 +161,10 @@ Options:
                    (when (and signature-first signature-last)
                      (cond
                        ((plusp (- signature-last signature-first))
-                        (format t "in ~A,~%" (format-time-duration
-                                              signature-first signature-last))
-                        (format t "~6,2Tfirst: ~A, "
-                                (format-time-stamp signature-first))
-                        (format t "last: ~A"
+                        (format t "in ~A~%~6,2T~A / ~A"
+                                (format-time-duration
+                                 signature-first signature-last)
+                                (format-time-stamp signature-first)
                                 (format-time-stamp signature-last)))
                        ((= signature-last signature-first)
                         (format t "in ~A" (format-time-stamp signature-last))))
@@ -176,12 +175,10 @@ Options:
                    (when (and encryption-first encryption-last)
                      (cond
                        ((plusp (- encryption-last encryption-first))
-                        (format t "in ~A,~%"
+                        (format t "in ~A~%~6,2T~A / ~A"
                                 (format-time-duration
-                                 encryption-first encryption-last))
-                        (format t "~6,2Tfirst: ~A, "
-                                (format-time-stamp encryption-first))
-                        (format t "last: ~A"
+                                 encryption-first encryption-last)
+                                (format-time-stamp encryption-first)
                                 (format-time-stamp encryption-last)))
                        ((= encryption-last encryption-first)
                         (format t "in ~A" (format-time-stamp
