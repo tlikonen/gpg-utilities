@@ -26,15 +26,15 @@ use different algorithms for drawing nodes and edges. Example:
 
 Options:
 
-  --invalid
-        Include revoked keys, expired keys, revoked user ids, expired
-        certificates and certificates for revoked user ids.
-
   --fingerprint
         Print keys' full fingerprint.
 
   --all-user-ids
         Print all user ids.
+
+  --invalid
+        Include revoked keys, expired keys, revoked user ids, expired
+        certificates and certificates for revoked user ids.
 
   -h, --help
         Print this help text.~%~%" *program*))
