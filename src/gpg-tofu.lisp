@@ -32,16 +32,17 @@
 
     (cond
       ((= 0 y m d h min)
-       (format nil "~D second~:*~P" s))
+       (format nil "~D second~:*~P (~A)" s duration))
       ((= 0 y m d h)
-       (format nil "~D minute~:*~P ~D second~:*~P" min s))
+       (format nil "~D minute~:*~P ~D second~:*~P (~A)" min s duration))
       ((= 0 y m d)
-       (format nil "~D hour~:*~P ~D minute~:*~P" h min))
+       (format nil "~D hour~:*~P ~D minute~:*~P (~A)" h min duration))
       ((= 0 y m)
-       (format nil "~D day~:*~P ~D hour~:*~P" d h))
+       (format nil "~D day~:*~P ~D hour~:*~P (~A)" d h duration))
       ((= 0 y)
-       (format nil "~D month~:*~P ~D day~:*~P" m d))
-      (t (format nil "~D year~:*~P ~D month~:*~P ~D day~:*~P" y m d)))))
+       (format nil "~D month~:*~P ~D day~:*~P (~A)" m d duration))
+      (t (format nil "~D year~:*~P ~D month~:*~P ~D day~:*~P (~A)" y m d
+                 duration)))))
 
 (defun center-string (string width)
   (if (<= width (length string))
@@ -67,23 +68,6 @@
                        (t ""))
                      width)
       ""))
-
-(defparameter *echo-buffer* (make-array 200 :element-type 'character
-                                            :adjustable t
-                                            :fill-pointer 0))
-
-(defun echo (format &rest arguments)
-  (loop :for c :across (apply #'format nil format arguments)
-        :do (vector-push-extend c *echo-buffer*)))
-
-(defun echo-buffer-length ()
-  (length *echo-buffer*))
-
-(defmacro with-echo-buffer (&body body)
-  `(progn
-     (setf (fill-pointer *echo-buffer*) 0)
-     (multiple-value-prog1 (progn ,@body)
-       (princ *echo-buffer*))))
 
 (defun print-usage ()
   (format t "~
@@ -161,7 +145,7 @@ Options:
                      (encryption-first (parse-time-stamp (nth 8 fields)))
                      (encryption-last (parse-time-stamp (nth 9 fields))))
 
-                 (format t "    TOFU validity: (~D/4) ~A, TOFU policy: ~A~%"
+                 (format t "~4,2TTOFU validity: (~D/4) ~A, TOFU policy: ~A~%"
                          tofu-validity
                          (case tofu-validity
                            (0 "conflict")
@@ -173,35 +157,33 @@ Options:
                          policy)
 
                  (when (plusp signature-count)
-                   (with-echo-buffer
-                     (echo "    ~D signature~:*~P" signature-count)
-                     (when (and signature-first signature-last)
-                       (cond
-                         ((plusp (- signature-last signature-first))
-                          (echo " in ~A" (format-time-duration
-                                          signature-first signature-last))
-                          (let ((indent (+ 2 (echo-buffer-length))))
-                            (echo ", first: ~A~%"
-                                  (format-time-stamp signature-first))
-                            (echo "~VTlast:  ~A" indent
-                                  (format-time-stamp signature-last))))
-                         ((= signature-last signature-first)
-                          (echo " in ~A" (format-time-stamp signature-last))))
-                       (echo "~%"))))
+                   (format t "~4,2T~D signature~:*~P " signature-count)
+                   (when (and signature-first signature-last)
+                     (cond
+                       ((plusp (- signature-last signature-first))
+                        (format t "in ~A,~%" (format-time-duration
+                                              signature-first signature-last))
+                        (format t "~6,2Tfirst: ~A, "
+                                (format-time-stamp signature-first))
+                        (format t "last: ~A"
+                                (format-time-stamp signature-last)))
+                       ((= signature-last signature-first)
+                        (format t "in ~A" (format-time-stamp signature-last))))
+                     (format t "~%")))
 
                  (when (plusp encryption-count)
-                   (with-echo-buffer
-                     (echo "    ~D encryption~:*~P" encryption-count)
-                     (when (and encryption-first encryption-last)
-                       (cond
-                         ((plusp (- encryption-last encryption-first))
-                          (echo " in ~A" (format-time-duration
-                                          encryption-first encryption-last))
-                          (let ((indent (+ 2 (echo-buffer-length))))
-                            (echo ", first: ~A~%"
-                                  (format-time-stamp encryption-first))
-                            (echo "~VTlast:  ~A" indent
-                                  (format-time-stamp encryption-last))))
-                         ((= encryption-last encryption-first)
-                          (echo " in ~A" (format-time-stamp encryption-last))))
-                       (echo "~%"))))))))))
+                   (format t "~4,2T~D encryption~:*~P " encryption-count)
+                   (when (and encryption-first encryption-last)
+                     (cond
+                       ((plusp (- encryption-last encryption-first))
+                        (format t "in ~A,~%"
+                                (format-time-duration
+                                 encryption-first encryption-last))
+                        (format t "~6,2Tfirst: ~A, "
+                                (format-time-stamp encryption-first))
+                        (format t "last: ~A"
+                                (format-time-stamp encryption-last)))
+                       ((= encryption-last encryption-first)
+                        (format t "in ~A" (format-time-stamp
+                                           encryption-last))))
+                     (format t "~%")))))))))
