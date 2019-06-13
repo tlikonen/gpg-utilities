@@ -40,7 +40,10 @@
 (defvar *graphviz-invalid-color* "#888888")
 
 (define-condition exit-program ()
-  ((code :reader code :initarg :code :type integer)))
+  ((code :type integer :reader code :initarg :code))
+  (:report (lambda (condition stream)
+             (format stream "Program's exit code ~D."
+                     (code condition)))))
 
 (defun exit-program (exit-code)
   (error 'exit-program :code exit-code))
