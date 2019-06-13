@@ -126,7 +126,7 @@ Options:
 
       (format t "~
 digraph \"GnuPG certificate path\" {
-overlap=scale;
+overlap=false;
 splines=true;
 node [shape=box];~%~%")
 

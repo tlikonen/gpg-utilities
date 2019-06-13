@@ -81,7 +81,7 @@ Options:
 
   (format t "~
 digraph \"GnuPG key graph\" {
-overlap=scale;
+overlap=false;
 splines=true;
 node [shape=box];~%~%")
 
