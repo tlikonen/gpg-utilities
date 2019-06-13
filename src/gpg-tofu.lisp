@@ -41,6 +41,8 @@
        (format nil "~D day~:*~P ~D hour~:*~P (~A)" d h duration))
       ((= 0 y)
        (format nil "~D month~:*~P ~D day~:*~P (~A)" m d duration))
+      ((= 0 m)
+       (format nil "~D year~:*~P ~D day~:*~P (~A)" y d duration))
       (t (format nil "~D year~:*~P ~D month~:*~P ~D day~:*~P (~A)" y m d
                  duration)))))
 
