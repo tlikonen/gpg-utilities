@@ -11,10 +11,7 @@
 
 (defun start (command)
   (handler-bind
-      ((common:exit-program
-         (lambda (c)
-           (sb-ext:exit :code (common:code c))))
-       (sb-int:simple-stream-error
+      ((sb-int:simple-stream-error
          (lambda (c)
            (declare (ignore c))
            (sb-ext:exit :code 1)))
@@ -40,4 +37,4 @@
          (apply #'count-steps:main args))
         (t (error "Invalid argument for START function.")))
 
-      (common:exit-program 0))))
+      (sb-ext:exit :code 0))))

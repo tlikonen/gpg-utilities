@@ -11,7 +11,6 @@
            #:arguments
            #:getopt
            #:invalid-arguments
-           #:exit-program #:code
            #:key
            #:user-ids
            #:fingerprint
@@ -43,15 +42,6 @@
 (define-condition invalid-arguments (error)
   nil
   (:report "Invalid arguments. Use option \"-h\" for help."))
-
-(define-condition exit-program ()
-  ((code :type integer :reader code :initarg :code))
-  (:report (lambda (condition stream)
-             (format stream "Program's exit code ~D."
-                     (code condition)))))
-
-(defun exit-program (exit-code)
-  (error 'exit-program :code exit-code))
 
 (defun optionp (option-symbol)
   (assoc option-symbol *options*))
