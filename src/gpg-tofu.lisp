@@ -95,7 +95,7 @@ Options:
 
   (when (optionp :help)
     (print-usage)
-    (exit-program 0))
+    (return-from main))
 
   (with-open-stream
       (gpg (sb-ext:process-output

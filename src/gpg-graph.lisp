@@ -53,7 +53,7 @@ Options:
 
   (when (optionp :help)
     (print-usage)
-    (exit-program 0))
+    (return-from main))
 
   (clrhash *keys*)
 

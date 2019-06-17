@@ -48,7 +48,7 @@ Options:
 
       (when (optionp :help)
         (print-usage)
-        (exit-program 0))
+        (return-from main))
 
       (setf key1 (arguments 0)
             key2 (arguments 1))
