@@ -106,6 +106,8 @@
 (defun target-key (cert)
   (key (target-uid cert)))
 
+(defgeneric validp (object))
+
 (defmethod validp ((key key))
   (and (not (revoked key))
        (not (expired key))))
