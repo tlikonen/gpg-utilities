@@ -66,7 +66,7 @@ Options:
                  (every (lambda (char)
                           (digit-char-p char 16))
                         key2))
-      (error "Invalid arguments. See \"-h\" for help."))
+      (error 'common:invalid-arguments))
 
     (clrhash *keys*)
 

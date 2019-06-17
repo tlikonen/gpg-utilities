@@ -10,6 +10,7 @@
            #:optionp
            #:arguments
            #:getopt
+           #:invalid-arguments
            #:exit-program #:code
            #:key
            #:user-ids
@@ -38,6 +39,10 @@
 (defvar *arguments* nil)
 (defvar *shortest-path-max-steps* 20)
 (defvar *graphviz-invalid-color* "#888888")
+
+(define-condition invalid-arguments (error)
+  nil
+  (:report "Invalid arguments. Use option \"-h\" for help."))
 
 (define-condition exit-program ()
   ((code :type integer :reader code :initarg :code))
@@ -73,8 +78,7 @@
       (setf *arguments* arguments)
 
       (when (and unknown (not (optionp :help)))
-        (format *error-output* "Use option \"-h\" for help.~%")
-        (exit-program 1)))))
+        (error 'invalid-arguments)))))
 
 (defclass key ()
   ((user-ids :accessor user-ids :initform nil)
