@@ -11,6 +11,7 @@
            #:arguments
            #:getopt
            #:invalid-arguments
+           #:key-not-found
            #:key
            #:user-ids
            #:fingerprint
@@ -42,6 +43,12 @@
 (define-condition invalid-arguments (error)
   nil
   (:report "Invalid arguments. Use option \"-h\" for help."))
+
+(define-condition key-not-found (error)
+  ((key :type string :reader key-argument :initarg :key))
+  (:report (lambda (condition stream)
+             (format stream "Key ~A not found from the keyring."
+                     (key-argument condition)))))
 
 (defun optionp (option-symbol)
   (assoc option-symbol *options*))

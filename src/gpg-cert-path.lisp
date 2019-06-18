@@ -100,10 +100,11 @@ Options:
                     ((equalp key2 fingerprint)
                      (setf key2 key))))
 
-    (cond ((stringp key1)
-           (error "The FROM key not found in the keyring."))
-          ((stringp key2)
-           (error "The TO key not found in the keyring.")))
+    (unless (typep key1 'key)
+      (error 'key-not-found :key key1))
+
+    (unless (typep key2 'key)
+      (error 'key-not-found :key key2))
 
     (let ((paths (multiple-value-bind (paths steps)
                      (shortest-paths key1 key2)

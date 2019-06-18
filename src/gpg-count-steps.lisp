@@ -96,10 +96,11 @@ Options:
                     ((equalp key2 fingerprint)
                      (setf key2 key))))
 
-    (cond ((stringp key1)
-           (error "The FROM key not found in the keyring."))
-          ((stringp key2)
-           (error "The TO key not found in the keyring.")))
+    (when (and key1 (not (typep key1 'key)))
+      (error 'key-not-found :key key1))
+
+    (when (and key2 (not (typep key2 'key)))
+      (error 'key-not-found :key key2))
 
     (let ((ht (make-hash-table)))
       (flet ((print-steps (key1 key2)
