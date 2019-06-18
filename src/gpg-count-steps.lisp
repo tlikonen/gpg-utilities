@@ -59,10 +59,13 @@ Options:
                              (every (lambda (char)
                                       (digit-char-p char 16))
                                     key))))
-            :do (error 'common:invalid-arguments))
+            :do (format *error-output* "Key arguments must be ~
+                40-character key fingerprints.~%")
+                (error 'invalid-arguments))
 
     (when (and key1 key2 (equalp key1 key2))
-      (error "The FROM and TO keys can't be the same."))
+      (format *error-output* "The FROM and TO keys can't be the same.~%")
+      (error 'invalid-arguments))
 
     (clrhash *keys*)
 

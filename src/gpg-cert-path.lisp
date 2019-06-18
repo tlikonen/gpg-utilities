@@ -66,7 +66,9 @@ Options:
                  (every (lambda (char)
                           (digit-char-p char 16))
                         key2))
-      (error 'common:invalid-arguments))
+      (format *error-output* "Key arguments must be two different ~
+                40-character key fingerprints.~%")
+      (error 'invalid-arguments))
 
     (clrhash *keys*)
 
