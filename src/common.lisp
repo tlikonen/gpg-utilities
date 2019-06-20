@@ -18,7 +18,6 @@
            #:creator-key
            #:certificates-from
            #:validp
-           #:clean-all-keys
            #:some-valid-certificates-p
            #:only-invalid-certificates-p
            #:split-colon-string
@@ -131,51 +130,6 @@
 (defun get-create-key (key-id)
   (or (gethash key-id *keys*)
       (setf (gethash key-id *keys*) (make-instance 'key))))
-
-(defun clean-all-keys ()
-  (let ((cert-hash (make-hash-table)))
-    (flet ((clean-cert-list (cert-list key-predicate)
-             (clrhash cert-hash)
-
-             (loop
-               :with update
-               :for cert :in cert-list
-               :for cert-key := (funcall key-predicate cert)
-               :for old-cert := (gethash cert-key cert-hash)
-
-               :do (setf update nil)
-                   (cond
-                     ((not old-cert)
-                      (setf update t))
-                     ((and (validp cert)
-                           (not (validp old-cert)))
-                      (setf update t))
-                     ((and (validp old-cert)
-                           (not (validp cert))))
-                     ((> (created cert)
-                         (created old-cert))
-                      (setf update t)))
-
-                   (when update
-                     (setf (gethash cert-key cert-hash) cert))
-
-               :finally
-                  (return (loop :for cert :being :each :hash-value
-                                  :in cert-hash
-                                :unless (typep cert 'revocation)
-                                  :collect cert)))))
-
-      (loop
-        :for key :being :each :hash-value :in *keys* :do
-
-          (setf (certificates-for key)
-                (clean-cert-list (certificates-for key) #'target-key))
-
-          (loop :for uid :in (user-ids key)
-                :append (certificates-from uid) :into certs
-                :finally
-                   (setf (certificates-from key)
-                         (clean-cert-list certs #'creator-key)))))))
 
 (defun some-valid-certificates-p (from-key to-key)
   (some (lambda (cert)
@@ -334,6 +288,51 @@
                       *graphviz-invalid-color*)
               "")))
 
+(defun clean-all-keys ()
+  (let ((cert-hash (make-hash-table)))
+    (flet ((clean-cert-list (cert-list key-predicate)
+             (clrhash cert-hash)
+
+             (loop
+               :with update
+               :for cert :in cert-list
+               :for cert-key := (funcall key-predicate cert)
+               :for old-cert := (gethash cert-key cert-hash)
+
+               :do (setf update nil)
+                   (cond
+                     ((not old-cert)
+                      (setf update t))
+                     ((and (validp cert)
+                           (not (validp old-cert)))
+                      (setf update t))
+                     ((and (validp old-cert)
+                           (not (validp cert))))
+                     ((> (created cert)
+                         (created old-cert))
+                      (setf update t)))
+
+                   (when update
+                     (setf (gethash cert-key cert-hash) cert))
+
+               :finally
+                  (return (loop :for cert :being :each :hash-value
+                                  :in cert-hash
+                                :unless (typep cert 'revocation)
+                                  :collect cert)))))
+
+      (loop
+        :for key :being :each :hash-value :in *keys* :do
+
+          (setf (certificates-for key)
+                (clean-cert-list (certificates-for key) #'target-key))
+
+          (loop :for uid :in (user-ids key)
+                :append (certificates-from uid) :into certs
+                :finally
+                   (setf (certificates-from key)
+                         (clean-cert-list certs #'creator-key)))))))
+
 (defun collect-key-data (stream)
   (loop
     :with key-id :with key :with uid :with expect
@@ -395,4 +394,6 @@
            (add-certificates-for creator-key cert)))))
 
   (loop :for key :being :each :hash-value :in *keys*
-        :do (setf (user-ids key) (reverse (user-ids key)))))
+        :do (setf (user-ids key) (reverse (user-ids key))))
+
+  (clean-all-keys))

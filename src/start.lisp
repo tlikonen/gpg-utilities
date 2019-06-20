@@ -25,7 +25,7 @@
            (sb-ext:exit :code 1))))
 
     (let ((args (rest sb-ext:*posix-argv*)))
-      
+
       (cond
         ((equal command "gpg-tofu")
          (apply #'tofu:main args))

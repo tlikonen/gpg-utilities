@@ -85,8 +85,6 @@ Options:
 
       (collect-key-data gpg))
 
-    (clean-all-keys)
-
     (format *error-output* " done.~%")
     (force-output *error-output*)
 
