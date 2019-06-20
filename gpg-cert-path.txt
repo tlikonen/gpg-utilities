@@ -1,0 +1,31 @@
+Usage: gpg-cert-path [options] [--] <from-key> <to-key>
+
+Find the shortest certificate path(s) between two GnuPG keys. The output
+is data for Graphviz which can draw an image of certificate path. Both
+arguments must be 40-character key fingerprints.
+
+Graphviz comes with tools like "dot", "neato", "fdp" etc. which
+use different algorithms for drawing nodes and edges. Example:
+
+    gpg-cert-path FROM-KEY TO-KEY | dot -Tpng > trust-path.png
+
+Options:
+
+  --fingerprint
+        Print keys' full fingerprint.
+
+  --all-user-ids
+        Print all user ids.
+
+  --max-steps=N
+        Set the maximum certificate steps between keys to number
+        N (positive integer). After that the search will give up. The
+        default is 20.
+
+  --invalid
+        Include revoked keys, expired keys, revoked user ids, expired
+        certificates and certificates for revoked user ids.
+
+  -h, --help
+        Print this help text.
+

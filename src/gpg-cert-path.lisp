@@ -4,8 +4,9 @@
 ;; https://creativecommons.org/publicdomain/zero/1.0/legalcode
 
 (defpackage #:cert-path
+  (:nicknames #:gpg-cert-path)
   (:use #:cl #:common)
-  (:export #:main))
+  (:export #:main #:print-usage))
 
 (in-package #:cert-path)
 

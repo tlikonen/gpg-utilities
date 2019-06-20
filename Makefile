@@ -8,7 +8,11 @@ prg = gpg-tofu gpg-graph gpg-cert-path gpg-count-steps
 
 -include config.mk
 
-all: $(patsubst %,build/%,$(prg))
+gpg-utilities: $(patsubst %,build/%,$(prg))
+
+usage: $(patsubst %,%.txt,$(prg))
+
+all: gpg-utilities usage
 
 $(patsubst %,build/%,$(prg)): $(src) quicklisp/setup.lisp
 	$(sbcl) --script make.lisp $(patsubst build/%,%,$@) '$(gpg)' '$(libdir)/gpg-utilities/'
@@ -29,6 +33,9 @@ config.mk:
 	@echo "sbcl = $(sbcl)" >> $@
 	@echo "gpg = $(gpg)" >> $@
 	@cat $@
+
+$(patsubst %,%.txt,$(prg)): $(src) quicklisp/setup.lisp
+	$(sbcl) --script usage.lisp $@
 
 install:
 	install -d -m 755 "$(bindir)" "$(libdir)/gpg-utilities"
@@ -53,4 +60,4 @@ distclean: clean
 	rm -fr quicklisp
 	rm -f config.mk
 
-.PHONY: all install uninstall clean distclean
+.PHONY: gpg-utilities usage all install uninstall clean distclean

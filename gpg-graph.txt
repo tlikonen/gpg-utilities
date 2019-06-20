@@ -1,0 +1,30 @@
+Usage: gpg-graph [options] [--] [key1 ...]
+
+Find connections between GnuPG keys based on certificates (key
+signatures) and output data for Graphviz which can draw a web of trust
+image. The arguments can be any valid references to GnuPG keys. See
+gpg(1) manual for help on that topic.
+
+Graphviz comes with tools like "dot", "neato", "fdp" etc. which
+use different algorithms for drawing nodes and edges. Example:
+
+    gpg-graph ... | dot -Tpng > web-of-trust.png
+
+Options:
+
+  --fingerprint
+        Print keys' full fingerprint.
+
+  --all-user-ids
+        Print all user ids.
+
+  --two-way
+        Print two-way arrows between cross-certified keys.
+
+  --invalid
+        Include revoked keys, expired keys, revoked user ids, expired
+        certificates and certificates for revoked user ids.
+
+  -h, --help
+        Print this help text.
+

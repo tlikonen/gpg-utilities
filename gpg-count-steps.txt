@@ -1,0 +1,30 @@
+Usage: gpg-count-steps [options] [--] [from-key [to-key]]
+
+Count the steps of the shortest certificate path between two keys in the
+keyring. If no arguments are given test all keys between each other (can
+take some time on large keyrings). If one key argument is given count
+certificate steps from that key to all other keys. If two keys are given
+count steps just between those keys. Both arguments, if given at all,
+must be 40-character key fingerprints.
+
+The output consists of lines with three fields:
+
+ 1. The fingerprint of the from key.
+ 2. The fingerprint of the to key.
+ 3. The number of steps between the keys (or "-" if connection wasn't
+    found).
+
+Options:
+
+  --max-steps=N
+        Set the maximum certificate steps between keys to number
+        N (positive integer). After that the search will give up. The
+        default is 20.
+
+  --invalid
+        Include revoked keys, expired keys, expired certificates and
+        certificates for revoked user ids.
+
+  -h, --help
+        Print this help text.
+

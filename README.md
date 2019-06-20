@@ -25,7 +25,7 @@ Usage: `gpg-tofu [options] [--] [key1 ...]`
         404 encryptions in 1 year 244 days, first: 2017-06-15 14:41:30Z, last: 2019-02-14 19:25:41Z
     [...]
 
-Use `-h` or `--help` option to print help text.
+Use `-h` option to print [help text](gpg-tofu.txt).
 
 
 ### GPG Graph
@@ -40,7 +40,7 @@ Usage: `gpg-graph [options] [--] [key1 ...]`
     $ gpg-graph kernel.org | neato -Tpng >wot-neato.png
     $ gpg-graph kernel.org | sfdp -Tpng >wot-sfdp.png
 
-Use `-h` or `--help` option to print help text.
+Use `-h` option to print [help text](gpg-graph.txt).
 
 
 ### GPG Cert Path
@@ -53,7 +53,7 @@ Usage: `gpg-cert-path [options] [--] <from-key> <to-key>`
     $ gpg-cert-path 80615870F5BAD690333686D0F2AD85AC1E42B367 \
         ABAF11C65A2970B130ABE3C479BE3E4300411886 | dot -Tpng >path.png
 
-Use `-h` or `--help` option to print help text.
+Use `-h` option to print [help text](gpg-cert-path.txt).
 
 
 ### GPG Count Steps
@@ -73,7 +73,7 @@ The output consists of lines with three fields:
 
 Usage: `gpg-count-steps [options] [--] [from-key [to-key]]`
 
-Use `-h` or `--help` option to print help text.
+Use `-h` option to print [help text](gpg-count-steps.txt).
 
 
 [GnuPG]:    https://gnupg.org/

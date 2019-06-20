@@ -4,8 +4,9 @@
 ;; https://creativecommons.org/publicdomain/zero/1.0/legalcode
 
 (defpackage #:count-steps
+  (:nicknames #:gpg-count-steps)
   (:use #:cl #:common)
-  (:export #:main))
+  (:export #:main #:print-usage))
 
 (in-package #:count-steps)
 
