@@ -32,14 +32,14 @@ Options:
   --all-user-ids
         Print all user ids.
 
-  --invalid
-        Include revoked keys, expired keys, revoked user ids, expired
-        certificates and certificates for revoked user ids.
-
   --max-steps=N
         Set the maximum certificate steps between keys to number
         N (positive integer). After that the search will give up. The
         default is ~D.
+
+  --invalid
+        Include revoked keys, expired keys, revoked user ids, expired
+        certificates and certificates for revoked user ids.
 
   -h, --help
         Print this help text.~%~%"
