@@ -108,9 +108,7 @@ Options:
 
     (let ((paths (multiple-value-bind (paths steps)
                      (shortest-paths key1 key2)
-                   (when steps
-                     (format *error-output* "Number of steps: ~D~%"
-                             steps))
+                   (format *error-output* "Number of steps: ~D~%" steps)
                    paths))
           (keys nil)
           (edges nil))

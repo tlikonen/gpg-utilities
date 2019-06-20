@@ -12,6 +12,7 @@
            #:getopt
            #:invalid-arguments
            #:key-not-found
+           #:path-not-found
            #:key
            #:user-ids
            #:fingerprint
@@ -48,6 +49,13 @@
   (:report (lambda (condition stream)
              (format stream "Key ~A not found from the keyring."
                      (key-argument condition)))))
+
+(define-condition path-not-found (error)
+  nil
+  (:report (lambda (condition stream)
+             (declare (ignore condition))
+             (format stream "Certificate path not found (within ~D steps)."
+                     *shortest-path-max-steps*))))
 
 (defun optionp (option-symbol)
   (assoc option-symbol *options*))
@@ -217,7 +225,9 @@
 
       (setf (gethash from-key hash-table) 0)
       (levels (list from-key) 0)
-      found-level)))
+      (if found-level
+          found-level
+          (error 'path-not-found)))))
 
 (defun shortest-paths (from to)
   (let ((paths nil)
@@ -241,14 +251,12 @@
                                            (gethash next-key studied))
                                   (routes next-key path (1+ steps))))))))
 
-      (let ((steps (study-levels from to studied)))
-        (when steps (routes from nil 0))
-        ;; (format *error-output* "Function calls: ~D~%" calls)
-        (if paths
-            (values paths steps)
-            (error "Couldn't find a path between the keys.~%~
-        Maybe there is no connection or at least not in this keyring~%~
-        or within the maximum of ~D steps." *shortest-path-max-steps*))))))
+      (handler-case
+          (let ((steps (study-levels from to studied)))
+            (routes from nil 0)
+            ;; (format *error-output* "Function calls: ~D~%" calls)
+            (values paths steps))
+        (path-not-found (c) (error c))))))
 
 (defun escape-graphviz-label (string)
   (string-io:escape-characters string '(#\" #\\) #\\))

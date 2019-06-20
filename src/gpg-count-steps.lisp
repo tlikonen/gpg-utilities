@@ -106,8 +106,9 @@ Options:
     (let ((ht (make-hash-table)))
       (flet ((print-steps (key1 key2)
                (clrhash ht)
-               (format t "~A ~A ~D~%" (fingerprint key1) (fingerprint key2)
-                       (or (study-levels key1 key2 ht) "-"))))
+               (format t "~A ~A ~A~%" (fingerprint key1) (fingerprint key2)
+                       (handler-case (study-levels key1 key2 ht)
+                         (path-not-found () "-")))))
 
         (cond ((and key1 key2)
                (print-steps key1 key2))
