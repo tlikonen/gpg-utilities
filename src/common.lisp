@@ -10,6 +10,7 @@
            #:*shortest-path-max-steps*
            #:optionp
            #:option-arg
+           #:validate-option-integer-arg
            #:arguments
            #:getopt
            #:invalid-arguments
@@ -54,6 +55,20 @@
       (setf (cdr (assoc option-symbol *options*)) value)
       (push (cons option-symbol value) *options*))
   value)
+
+(defun validate-option-integer-arg (option-symbol option-name
+                                    &optional (predicate #'identity))
+  (when (option-arg option-symbol)
+    (handler-case
+        (let ((n (parse-integer (option-arg option-symbol))))
+          (if (funcall predicate n)
+              (setf (option-arg option-symbol) n)
+              (error 'parse-error)))
+      (parse-error ()
+        (error 'invalid-arguments
+               :text (format nil "Invalid argument for option \"~A\": \"~A\"."
+                             option-name
+                             (option-arg option-symbol)))))))
 
 (defun arguments (&optional position)
   (if position

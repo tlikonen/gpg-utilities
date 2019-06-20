@@ -58,16 +58,7 @@ Options:
       (print-usage)
       (return-from main))
 
-    (when (optionp :max-steps)
-      (handler-case
-          (let ((n (parse-integer (option-arg :max-steps))))
-            (if (plusp n)
-                (setf (option-arg :max-steps) n)
-                (error 'parse-error)))
-        (parse-error ()
-          (error 'invalid-arguments
-                 :text (format nil "Invalid argument for option: ~
-                        --max-steps=\"~A\"." (option-arg :max-steps))))))
+    (validate-option-integer-arg :max-steps "--max-steps" #'plusp)
 
     (setf key1 (arguments 0)
           key2 (arguments 1))
