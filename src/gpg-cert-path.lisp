@@ -36,8 +36,15 @@ Options:
         Include revoked keys, expired keys, revoked user ids, expired
         certificates and certificates for revoked user ids.
 
+  --max-steps=N
+        Set the maximum certificate steps between keys to number
+        N (positive integer). After that the search will give up. The
+        default is ~D.
+
   -h, --help
-        Print this help text.~%~%" *program*))
+        Print this help text.~%~%"
+          *program*
+          *shortest-path-max-steps*))
 
 (defun main (&rest args)
   (let ((key1 nil)
@@ -47,7 +54,8 @@ Options:
                    (:help "help")
                    (:invalid "invalid")
                    (:fingerprint "fingerprint")
-                   (:all-user-ids "all-user-ids")))
+                   (:all-user-ids "all-user-ids")
+                   (:max-steps "max-steps" :required)))
 
     (when (optionp :help)
       (print-usage)
@@ -69,6 +77,17 @@ Options:
       (format *error-output* "Key arguments must be two different ~
                 40-character key fingerprints.~%")
       (error 'invalid-arguments))
+
+    (when (optionp :max-steps)
+      (handler-case
+          (let ((n (parse-integer (option-arg :max-steps))))
+            (if (plusp n)
+                (setf (option-arg :max-steps) n)
+                (error 'parse-error)))
+        (parse-error ()
+          (format *error-output* "Invalid argument for option ~
+                        \"--max-steps\".~%")
+          (error 'invalid-arguments))))
 
     (clrhash *keys*)
 

@@ -7,7 +7,9 @@
   (:use #:cl)
   (:export #:*gpg-program*
            #:*keys*
+           #:*shortest-path-max-steps*
            #:optionp
+           #:option-arg
            #:arguments
            #:getopt
            #:invalid-arguments
@@ -40,6 +42,23 @@
 (defvar *shortest-path-max-steps* 20)
 (defvar *graphviz-invalid-color* "#888888")
 
+(defun optionp (option-symbol)
+  (assoc option-symbol *options*))
+
+(defun option-arg (option-symbol)
+  (cdr (assoc option-symbol *options*)))
+
+(defun (setf option-arg) (value option-symbol)
+  (if (option-arg option-symbol)
+      (setf (cdr (assoc option-symbol *options*)) value)
+      (push (cons option-symbol value) *options*))
+  value)
+
+(defun arguments (&optional position)
+  (if position
+      (nth position *arguments*)
+      *arguments*))
+
 (define-condition invalid-arguments (error)
   nil
   (:report "Invalid arguments. Use option \"-h\" for help."))
@@ -50,20 +69,17 @@
              (format stream "Key ~A not found from the keyring."
                      (key-argument condition)))))
 
+(defun shortest-path-max-steps ()
+  (or (option-arg :max-steps)
+      *shortest-path-max-steps*))
+
 (define-condition path-not-found (error)
   nil
   (:report (lambda (condition stream)
              (declare (ignore condition))
-             (format stream "Certificate path not found (within ~D steps)."
-                     *shortest-path-max-steps*))))
-
-(defun optionp (option-symbol)
-  (assoc option-symbol *options*))
-
-(defun arguments (&optional position)
-  (if position
-      (nth position *arguments*)
-      *arguments*))
+             (format stream "Certificate path not found (within maximum of ~
+                        ~D steps)."
+                     (shortest-path-max-steps)))))
 
 (defun getopt (args spec)
   (handler-bind ((just-getopt-parser:unknown-option
@@ -76,7 +92,8 @@
                                    :prefix-match-long-options t
                                    :error-on-unknown-option t
                                    :error-on-ambiguous-option t
-                                   :error-on-argument-not-allowed t)
+                                   :error-on-argument-not-allowed t
+                                   :error-on-argument-missing t)
 
       (setf *options* options)
       (setf *arguments* arguments)
@@ -195,10 +212,11 @@
         :collect (subseq fingerprint (- i 4) i)))
 
 (defun study-levels (from-key to-key hash-table)
-  (let ((found-level nil))
+  (let ((found-level nil)
+        (max-steps (shortest-path-max-steps)))
     (labels
         ((levels (keys level)
-           (unless (> level *shortest-path-max-steps*)
+           (unless (> level max-steps)
              (loop :for key :in keys
                    :do (when (or (optionp :invalid)
                                  (validp key))

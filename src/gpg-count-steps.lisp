@@ -31,12 +31,19 @@ The output consists of lines with three fields:
 
 Options:
 
+  --max-steps=N
+        Set the maximum certificate steps between keys to number
+        N (positive integer). After that the search will give up. The
+        default is ~D.
+
   --invalid
         Include revoked keys, expired keys, expired certificates and
         certificates for revoked user ids.
 
   -h, --help
-        Print this help text.~%~%" *program*))
+        Print this help text.~%~%"
+          *program*
+          *shortest-path-max-steps*))
 
 (defun main (&rest args)
   (let ((key1 nil)
@@ -44,7 +51,8 @@ Options:
 
     (getopt args '((:help #\h)
                    (:help "help")
-                   (:invalid "invalid")))
+                   (:invalid "invalid")
+                   (:max-steps "max-steps" :required)))
 
       (when (optionp :help)
         (print-usage)
@@ -66,6 +74,17 @@ Options:
     (when (and key1 key2 (equalp key1 key2))
       (format *error-output* "The FROM and TO keys can't be the same.~%")
       (error 'invalid-arguments))
+
+    (when (optionp :max-steps)
+      (handler-case
+          (let ((n (parse-integer (option-arg :max-steps))))
+            (if (plusp n)
+                (setf (option-arg :max-steps) n)
+                (error 'parse-error)))
+        (parse-error ()
+          (format *error-output* "Invalid argument for option ~
+                        \"--max-steps\".~%")
+          (error 'invalid-arguments))))
 
     (clrhash *keys*)
 
