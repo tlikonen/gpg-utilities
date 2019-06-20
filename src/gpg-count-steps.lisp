@@ -54,26 +54,9 @@ Options:
                    (:invalid "invalid")
                    (:max-steps "max-steps" :required)))
 
-      (when (optionp :help)
-        (print-usage)
-        (return-from main))
-
-      (setf key1 (arguments 0)
-            key2 (arguments 1))
-
-    (loop :for key :in (list key1 key2)
-          :if (and key
-                   (not (and (= 40 (length key))
-                             (every (lambda (char)
-                                      (digit-char-p char 16))
-                                    key))))
-            :do (format *error-output* "Key arguments must be ~
-                40-character key fingerprints.~%")
-                (error 'invalid-arguments))
-
-    (when (and key1 key2 (equalp key1 key2))
-      (format *error-output* "The FROM and TO keys can't be the same.~%")
-      (error 'invalid-arguments))
+    (when (optionp :help)
+      (print-usage)
+      (return-from main))
 
     (when (optionp :max-steps)
       (handler-case
@@ -82,9 +65,26 @@ Options:
                 (setf (option-arg :max-steps) n)
                 (error 'parse-error)))
         (parse-error ()
-          (format *error-output* "Invalid argument for option ~
-                        \"--max-steps\".~%")
-          (error 'invalid-arguments))))
+          (error 'invalid-arguments
+                 :text (format nil "Invalid argument for option: ~
+                        --max-steps=\"~A\"." (option-arg :max-steps))))))
+
+    (setf key1 (arguments 0)
+          key2 (arguments 1))
+
+    (loop :for key :in (list key1 key2)
+          :if (and key
+                   (not (and (= 40 (length key))
+                             (every (lambda (char)
+                                      (digit-char-p char 16))
+                                    key))))
+            :do (error 'invalid-arguments
+                       :text (format nil "Key arguments must be ~
+                        40-character key fingerprints.")))
+
+    (when (and key1 key2 (equalp key1 key2))
+      (error 'invalid-arguments
+             :text "The FROM and TO keys can't be the same."))
 
     (clrhash *keys*)
 

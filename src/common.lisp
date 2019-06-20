@@ -13,6 +13,7 @@
            #:arguments
            #:getopt
            #:invalid-arguments
+           #:invalid-arguments-text
            #:key-not-found
            #:path-not-found
            #:key
@@ -60,8 +61,11 @@
       *arguments*))
 
 (define-condition invalid-arguments (error)
-  nil
-  (:report "Invalid arguments. Use option \"-h\" for help."))
+  ((text :initform "Invalid arguments." :reader invalid-arguments-text
+         :initarg :text))
+  (:report (lambda (condition stream)
+             (format stream "~A~&Use option \"-h\" for help."
+                     (invalid-arguments-text condition)))))
 
 (define-condition key-not-found (error)
   ((key :type string :reader key-argument :initarg :key))

@@ -61,6 +61,17 @@ Options:
       (print-usage)
       (return-from main))
 
+    (when (optionp :max-steps)
+      (handler-case
+          (let ((n (parse-integer (option-arg :max-steps))))
+            (if (plusp n)
+                (setf (option-arg :max-steps) n)
+                (error 'parse-error)))
+        (parse-error ()
+          (error 'invalid-arguments
+                 :text (format nil "Invalid argument for option: ~
+                        --max-steps=\"~A\"." (option-arg :max-steps))))))
+
     (setf key1 (arguments 0)
           key2 (arguments 1))
 
@@ -74,20 +85,9 @@ Options:
                  (every (lambda (char)
                           (digit-char-p char 16))
                         key2))
-      (format *error-output* "Key arguments must be two different ~
-                40-character key fingerprints.~%")
-      (error 'invalid-arguments))
-
-    (when (optionp :max-steps)
-      (handler-case
-          (let ((n (parse-integer (option-arg :max-steps))))
-            (if (plusp n)
-                (setf (option-arg :max-steps) n)
-                (error 'parse-error)))
-        (parse-error ()
-          (format *error-output* "Invalid argument for option ~
-                        \"--max-steps\".~%")
-          (error 'invalid-arguments))))
+      (error 'invalid-arguments
+             :text (format nil "Key arguments must be two different ~
+                40-character key fingerprints.")))
 
     (clrhash *keys*)
 
