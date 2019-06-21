@@ -21,8 +21,8 @@ Usage: `gpg-tofu [options] [--] [key1 ...]`
     pub 4E1055DC84E9DFF613D78557719D69D324539450
     uid [ultimate] Teemu Likonen <tlikonen@iki.fi>
         TOFU validity: (4/4) a lot of history for trust, TOFU policy: good
-        430 signatures in 1 year 254 days, first: 2017-06-09 11:28:16Z, last: 2019-02-18 14:18:37Z
-        404 encryptions in 1 year 244 days, first: 2017-06-15 14:41:30Z, last: 2019-02-14 19:25:41Z
+        523 signatures in 2 years 9 days (P0002-00-09T18:44:06)
+          2017-06-09 14:28:16+03:00 / 2019-06-19 09:12:22+03:00
     [...]
 
 Use `-h` option to print [help text](gpg-tofu.txt).
