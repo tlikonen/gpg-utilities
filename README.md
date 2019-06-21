@@ -96,12 +96,12 @@ To install the files in the default locations run this command:
 
     $ sudo make install
 
-By default the default installation target is under `/usr/local`
-directory. You can configure different directory hierarchy with makefile
-variable `prefix` or separately for executable files with `bindir` and
-library files with `libdir`. Variable `sbcl` defines the SBCL path and
-variable `gpg` the GnuPG path. Variables are stored in `config.mk` file.
-Use the same target location variables in compiling and installing.
+The default installation target is under `/usr/local` directory. You can
+configure different directory hierarchy with makefile variable `prefix`
+or separately for executable files with `bindir` and library files with
+`libdir`. Variable `sbcl` defines the SBCL path and variable `gpg` the
+GnuPG path. Variables are stored in `config.mk` file. Use the same
+target location variables in compiling and installing.
 
     $ make distclean
     $ make sbcl=/usr/local/bin/sbcl bindir=~/bin libdir=~/.local/lib
