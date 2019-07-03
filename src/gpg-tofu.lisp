@@ -16,7 +16,7 @@
   (local-time:format-timestring
    nil
    (local-time:universal-to-timestamp universal-time)
-   :format '((:year 4) "-" (:month 2) "-" (:day 2) " "
+   :format '((:year 4) "-" (:month 2) "-" (:day 2) "T"
              (:hour 2) ":" (:min 2) ":" (:sec 2) :gmt-offset-or-z)
    :timezone (if (optionp :utc)
                  local-time:+utc-zone+
@@ -165,7 +165,7 @@ Options:
                    (when (and signature-first signature-last)
                      (cond
                        ((plusp (- signature-last signature-first))
-                        (format t "in ~A~%~6,2T~A / ~A"
+                        (format t "in ~A~%~6,2T~A/~A"
                                 (format-time-duration
                                  signature-first signature-last)
                                 (format-time-stamp signature-first)
@@ -179,7 +179,7 @@ Options:
                    (when (and encryption-first encryption-last)
                      (cond
                        ((plusp (- encryption-last encryption-first))
-                        (format t "in ~A~%~6,2T~A / ~A"
+                        (format t "in ~A~%~6,2T~A/~A"
                                 (format-time-duration
                                  encryption-first encryption-last)
                                 (format-time-stamp encryption-first)

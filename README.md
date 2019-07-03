@@ -22,7 +22,7 @@ Usage: `gpg-tofu [options] [--] [key1 ...]`
     uid [ultimate] Teemu Likonen <tlikonen@iki.fi>
         TOFU validity: (4/4) a lot of history for trust, TOFU policy: good
         523 signatures in 2 years 9 days (P0002-00-09T18:44:06)
-          2017-06-09 14:28:16+03:00 / 2019-06-19 09:12:22+03:00
+          2017-06-09T14:28:16+03:00/2019-06-19T09:12:22+03:00
     [...]
 
 Use `-h` option to print [help text](gpg-tofu.txt).
