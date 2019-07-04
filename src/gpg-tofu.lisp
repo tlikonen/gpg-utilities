@@ -85,13 +85,17 @@ Options:
   --utc
         Display time stamps in UTC time. The default is local time zone.
 
+  --invalid
+        Include revoked and expired keys and user ids.
+
   -h, --help
         Print this help text.~%~%" *program*))
 
 (defun main (&rest args)
   (getopt args '((:help #\h)
                  (:help "help")
-                 (:utc "utc")))
+                 (:utc "utc")
+                 (:invalid "invalid")))
 
   (when (optionp :help)
     (print-usage)
@@ -130,10 +134,16 @@ Options:
 
               ((and (member :uid expect)
                     (string= "uid" (nth 0 fields)))
-               (setf expect '(:tfs :uid))
-               (format t "uid [~8A] ~A~%"
-                       (format-validity (nth 1 fields) 8)
-                       (unescape-user-id (nth 9 fields))))
+               (let ((validity (nth 1 fields)))
+                 (if (and (not (optionp :invalid))
+                          (plusp (length validity))
+                          (find (aref validity 0) "re"))
+                     (setf expect '(:uid))
+                     (progn
+                       (setf expect '(:tfs :uid))
+                       (format t "uid [~8A] ~A~%"
+                               (format-validity validity 8)
+                               (unescape-user-id (nth 9 fields)))))))
 
               ((and (member :tfs expect)
                     (string= "tfs" (nth 0 fields))

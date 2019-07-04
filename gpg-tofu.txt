@@ -9,6 +9,9 @@ Options:
   --utc
         Display time stamps in UTC time. The default is local time zone.
 
+  --invalid
+        Include revoked and expired keys and user ids.
+
   -h, --help
         Print this help text.
 
