@@ -22,8 +22,12 @@
                  local-time:+utc-zone+
                  local-time:*default-timezone*)))
 
+(defun format-time-interval (utime1 utime2)
+  (date-time:format-iso8601-interval (format-time-stamp utime1)
+                                     (format-time-stamp utime2)))
+
 (defun format-time-duration (time1 time2)
-  (let* ((duration (date-time:decoded-time-duration time1 time2))
+  (let* ((duration (date-time:decoded-duration time1 time2))
          (y (date-time:years duration))
          (m (date-time:months duration))
          (d (date-time:days duration))
@@ -76,9 +80,9 @@
   (format t "~
 Usage: ~A [options] [--] [key1 ...]
 
-Print \"trust on first use\" (TOFU) statistics for GnuPG keys. The
-arguments can be any valid references to GnuPG keys. See gpg(1) manual
-for help on that topic.
+Print \"trust on first use\" (TOFU) statistics for GnuPG keys. Date and
+time are displayed in ISO 8601 format. The arguments can be any valid
+references to GnuPG keys. See gpg(1) manual for help on that topic.
 
 Options:
 
@@ -174,11 +178,11 @@ Options:
                    (when (and signature-first signature-last)
                      (cond
                        ((plusp (- signature-last signature-first))
-                        (format t "in ~A~%~6,2T~A/~A"
-                                (format-time-duration
-                                 signature-first signature-last)
-                                (format-time-stamp signature-first)
-                                (format-time-stamp signature-last)))
+                        (format t "in ~A~%~6,2T~A"
+                                (format-time-duration signature-first
+                                                      signature-last)
+                                (format-time-interval signature-first
+                                                      signature-last)))
                        ((= signature-last signature-first)
                         (format t "in ~A" (format-time-stamp signature-last))))
                      (format t "~%")))
@@ -188,11 +192,11 @@ Options:
                    (when (and encryption-first encryption-last)
                      (cond
                        ((plusp (- encryption-last encryption-first))
-                        (format t "in ~A~%~6,2T~A/~A"
-                                (format-time-duration
-                                 encryption-first encryption-last)
-                                (format-time-stamp encryption-first)
-                                (format-time-stamp encryption-last)))
+                        (format t "in ~A~%~6,2T~A"
+                                (format-time-duration encryption-first
+                                                      encryption-last)
+                                (format-time-interval encryption-first
+                                                      encryption-last)))
                        ((= encryption-last encryption-first)
                         (format t "in ~A" (format-time-stamp
                                            encryption-last))))

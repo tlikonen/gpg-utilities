@@ -1,8 +1,8 @@
 Usage: gpg-tofu [options] [--] [key1 ...]
 
-Print "trust on first use" (TOFU) statistics for GnuPG keys. The
-arguments can be any valid references to GnuPG keys. See gpg(1) manual
-for help on that topic.
+Print "trust on first use" (TOFU) statistics for GnuPG keys. Date and
+time are displayed in ISO 8601 format. The arguments can be any valid
+references to GnuPG keys. See gpg(1) manual for help on that topic.
 
 Options:
 

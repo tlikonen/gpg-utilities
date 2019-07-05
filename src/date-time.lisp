@@ -5,18 +5,18 @@
 
 (defpackage #:date-time
   (:use #:cl)
-  (:export #:decoded-time-duration
-           #:duration
-           #:seconds-total
-           #:days-total
-           #:years
-           #:months
-           #:days
-           #:days-after-years
-           #:hours
-           #:minutes
-           #:seconds
-           #:leap-year-p))
+  (:export
+   #:decoded-duration
+   #:duration
+   #:seconds-total #:days-total
+   #:years #:months #:days
+   #:days-after-years
+   #:seconds-after-days
+   #:hours #:minutes #:seconds
+   #:leap-year-p #:days-in-month
+   #:adjust-month #:adjust-date
+   #:format-iso8601-interval
+   ))
 
 (in-package #:date-time)
 
@@ -29,46 +29,41 @@
    (days :type (integer 0 30) :reader days :initarg :days)
    (days-after-years :type (integer 0 365) :reader days-after-years
                      :initarg :days-after-years)
+   (seconds-after-days :type (integer 0 *) :reader seconds-after-days
+                       :initarg :seconds-after-days)
    (hours :type (integer 0 23) :reader hours :initarg :hours)
    (minutes :type (integer 0 59) :reader minutes :initarg :minutes)
    (seconds :type (integer 0 59) :reader seconds :initarg :seconds)))
 
-(defun format-duration-iso (duration &optional stream)
+(defun format-iso8601-duration (duration &optional stream)
   (format stream "P~4,'0D-~2,'0D-~2,'0DT~2,'0D:~2,'0D:~2,'0D"
           (years duration) (months duration) (days duration)
           (hours duration) (minutes duration) (seconds duration)))
 
 (defmethod print-object ((object duration) stream)
-  (cond ((and (not *print-readably*)
-              (not *print-escape*))
-         (format-duration-iso object stream))
-        (*print-readably*
-         (format stream "#.~S"
-                 (list 'make-instance
-                       ''duration
-                       :seconds-total (seconds-total object)
-                       :days-total (days-total object)
-                       :years (years object)
-                       :months (months object)
-                       :days (days object)
-                       :days-after-years (days-after-years object)
-                       :hours (hours object)
-                       :minutes (minutes object)
-                       :seconds (seconds object))))
-        (t (print-unreadable-object (object stream :type t :identity t)
-             (format-duration-iso object stream)))))
+  (if (and (not *print-readably*)
+           (not *print-escape*))
+      (format-iso8601-duration object stream)
+      (print-unreadable-object (object stream :type t :identity t)
+        (format-iso8601-duration object stream))))
 
 (defun leap-year-p (year)
+  (check-type year integer)
   (flet ((divisible-by (n)
            (= 0 (rem year n))))
     (and (divisible-by 4)
          (or (divisible-by 400)
              (not (divisible-by 100))))))
 
-(defun increase-month (year month)
+(defun days-in-month (year month)
   (check-type year integer)
   (check-type month (integer 1 12))
+  (cond ((find month '(1 3 5 7 8 10 12)) 31)
+        ((find month '(4 6 9 11)) 30)
+        ((leap-year-p year) 29)
+        (t 28)))
 
+(defun increase-month (year month)
   (incf month)
   (when (> month 12)
     (setf month 1)
@@ -76,27 +71,56 @@
   (values year month))
 
 (defun increase-date (year month date)
+  (incf date)
+  (when (> date (days-in-month year month))
+    (setf date 1)
+    (setf (values year month) (increase-month year month)))
+  (values year month date))
+
+(defun decrease-month (year month)
+  (decf month)
+  (when (< month 1)
+    (setf month 12)
+    (decf year))
+  (values year month))
+
+(defun decrease-date (year month date)
+  (decf date)
+  (when (< date 1)
+    (setf (values year month) (decrease-month year month))
+    (setf date (days-in-month year month)))
+  (values year month date))
+
+(defun adjust-month (year month offset)
+  (check-type year integer)
+  (check-type month (integer 1 12))
+  (check-type offset integer)
+  (cond ((plusp offset)
+         (loop :repeat offset
+               :do (setf (values year month)
+                         (increase-month year month))))
+        ((minusp offset)
+         (loop :repeat (abs offset)
+               :do (setf (values year month)
+                         (decrease-month year month)))))
+  (values year month))
+
+(defun adjust-date (year month date offset)
   (check-type year integer)
   (check-type month (integer 1 12))
   (check-type date (integer 1 31))
-
-  (incf date)
-  (when (or (and (find month '(1 3 5 7 8 10 12))
-                 (> date 31))
-            (and (find month '(4 6 9 11))
-                 (> date 30))
-            (and (= 2 month)
-                 (leap-year-p year)
-                 (> date 29))
-            (and (= 2 month)
-                 (not (leap-year-p year))
-                 (> date 28)))
-    (setf date 1)
-    (setf (values year month) (increase-month year month)))
-
+  (check-type offset integer)
+  (cond ((plusp offset)
+         (loop :repeat offset
+               :do (setf (values year month date)
+                         (increase-date year month date))))
+        ((minusp offset)
+         (loop :repeat (abs offset)
+               :do (setf (values year month date)
+                         (decrease-date year month date)))))
   (values year month date))
 
-(defun decoded-time-duration (utime1 utime2)
+(defun decoded-duration (utime1 utime2)
   "Return decoded time duration between Common Lisp universal times
 UTIME1 and UTIME2. The function returns a DURATION object which can be
 queried with these methods:
@@ -110,6 +134,8 @@ queried with these methods:
 
     DAYS-AFTER-YEARS: The number of full days (0-355) passed after full
     years.
+
+    SECONDS-AFTER-DAYS: The number of seconds passed after full days.
 
     HOURS, MINUTES, SECONDS: The number of hours (0-23), minutes (0-59)
     and seconds (0-59) after the full days count.
@@ -143,6 +169,7 @@ DAYS-AFTER-YEARS values if you need more exact day count."
       (values (make-instance 'duration :seconds-total 0 :days-total 0
                                        :years 0 :months 0 :days 0
                                        :days-after-years 0
+                                       :seconds-after-days 0
                                        :hours 0 :minutes 0 :seconds 0)
               0)
 
@@ -158,6 +185,7 @@ DAYS-AFTER-YEARS values if you need more exact day count."
              (months 0)
              (days 0)
              (days-after-years 0)
+             (seconds-after-days 0)
              (hours 0)
              (minutes 0)
              (seconds 0))
@@ -185,9 +213,8 @@ DAYS-AFTER-YEARS values if you need more exact day count."
             :with y := year1
             :with m := month1
             :for new := (progn
-                          (setf (values y m) (increase-month y m))
-                          (encode-universal-time sec1 min1 hour1
-                                                 date1 m y 0))
+                          (setf (values y m) (adjust-month y m 1))
+                          (encode-universal-time sec1 min1 hour1 date1 m y 0))
             :while (<= new u2)
             :do (setf year1 y
                       month1 m)
@@ -200,15 +227,16 @@ DAYS-AFTER-YEARS values if you need more exact day count."
             :with m := month1
             :with d := date1
             :for new := (progn
-                          (setf (values y m d) (increase-date y m d))
-                          (encode-universal-time sec1 min1 hour1
-                                                 d m y 0))
+                          (setf (values y m d) (adjust-date y m d 1))
+                          (encode-universal-time sec1 min1 hour1 d m y 0))
             :while (<= new u2)
             :do (setf year1 y
                       month1 m
                       date1 d)
                 (setf u1 new)
                 (incf days))
+
+          (setf seconds-after-days (- u2 u1))
 
           ;; Hours, mins, secs
           (setf seconds (- u2 u1))
@@ -223,6 +251,29 @@ DAYS-AFTER-YEARS values if you need more exact day count."
                                     :days-total days-total
                                     :years years :months months :days days
                                     :days-after-years days-after-years
+                                    :seconds-after-days seconds-after-days
                                     :hours hours :minutes minutes
                                     :seconds seconds)
            most-recent)))))
+
+(defun format-iso8601-interval
+    (iso-time1 iso-time2 &key stream
+                           (cut-points
+                            #. (vector 0
+                                       (length "0000-")
+                                       (length "0000-00-")
+                                       (length "0000-00-00T")
+                                       (length "0000-00-00T00:")
+                                       (length "0000-00-00T00:00:")
+                                       (length "0000-00-00T00:00:00+00:00"))))
+
+  (unless (= (length iso-time1) (length iso-time2))
+    (error "ISO-TIME1 and ISO-TIME2 must be of the same length."))
+
+  (let ((mismatch (mismatch iso-time1 iso-time2)))
+    (if (not mismatch)
+        (format stream "~A" iso-time1)
+        (format stream "~A/~A" iso-time1
+                (subseq iso-time2 (find-if (lambda (cut)
+                                             (<= cut mismatch))
+                                           cut-points :from-end t))))))
