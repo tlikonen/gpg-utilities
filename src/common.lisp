@@ -438,7 +438,10 @@
            (add-certificates-from uid cert)
            (add-certificates-for creator-key cert)))))
 
-  (loop :for key :being :each :hash-value :in *keys*
-        :do (setf (user-ids key) (reverse (user-ids key))))
+  (loop
+     :for key :being :each :hash-value :in *keys* :using (hash-key id)
+     :do (if (and (fingerprint key) (user-ids key))
+             (setf (user-ids key) (reverse (user-ids key)))
+             (remhash id *keys*)))
 
   (clean-all-keys))
