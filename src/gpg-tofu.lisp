@@ -23,8 +23,7 @@
                  local-time:*default-timezone*)))
 
 (defun format-time-interval (utime1 utime2)
-  (date-time:format-iso8601-interval (format-time-stamp utime1)
-                                     (format-time-stamp utime2)))
+  (format nil "~A/~A" (format-time-stamp utime1) (format-time-stamp utime2)))
 
 (defun format-time-duration (time1 time2)
   (let* ((duration (date-time:decoded-duration time1 time2))
