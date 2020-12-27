@@ -206,8 +206,8 @@
   (remove-if-not #'graphic-char-p (string-io:unescape-c-string string)))
 
 (defun parse-time-stamp (time-stamp)
-  ;; Parse GnuPG time stamp and return Lisp universal time. If the
-  ;; original time stamp is missing return nil.
+  "Parse GnuPG time stamp and return Lisp universal time. If the
+original time stamp is missing return nil."
   (cond ((or (string= time-stamp "")
              (string= time-stamp "0"))
          nil)
