@@ -25,7 +25,7 @@ Usage: `gpg-tofu [options] [--] [key1 ...]`
           2017-06-09T14:28:16+03:00/2019-06-19T09:12:22+03:00
     [...]
 
-Use `-h` option to print [help text](gpg-tofu.txt).
+Use `-h` option to print [help text](doc/gpg-tofu.txt).
 
 
 ### GPG Graph
@@ -40,7 +40,7 @@ Usage: `gpg-graph [options] [--] [key1 ...]`
     $ gpg-graph kernel.org | neato -Tpng >wot-neato.png
     $ gpg-graph kernel.org | sfdp -Tpng >wot-sfdp.png
 
-Use `-h` option to print [help text](gpg-graph.txt).
+Use `-h` option to print [help text](doc/gpg-graph.txt).
 
 
 ### GPG Cert Path
@@ -53,7 +53,7 @@ Usage: `gpg-cert-path [options] [--] <from-key> <to-key>`
     $ gpg-cert-path 80615870F5BAD690333686D0F2AD85AC1E42B367 \
         ABAF11C65A2970B130ABE3C479BE3E4300411886 | dot -Tpng >path.png
 
-Use `-h` option to print [help text](gpg-cert-path.txt).
+Use `-h` option to print [help text](doc/gpg-cert-path.txt).
 
 
 ### GPG Count Steps
@@ -73,7 +73,7 @@ The output consists of lines with three fields:
 
 Usage: `gpg-count-steps [options] [--] [from-key [to-key]]`
 
-Use `-h` option to print [help text](gpg-count-steps.txt).
+Use `-h` option to print [help text](doc/gpg-count-steps.txt).
 
 
 [GnuPG]:    https://gnupg.org/
