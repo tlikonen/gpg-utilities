@@ -18,7 +18,7 @@ Usage: `gpg-tofu [options] [--] [key1 ...]`
 
     $ gpg-tofu tlikonen@iki.fi
 
-    pub 4E1055DC84E9DFF613D78557719D69D324539450
+    pub 4E1055DC84E9DFF613D78557719D69D324539450 (expires: [...])
     uid [ultimate] Teemu Likonen <tlikonen@iki.fi>
         TOFU validity: (4/4) a lot of history for trust, TOFU policy: good
         523 signatures in 2 years 9 days (P0002-00-09T18:44:06)
