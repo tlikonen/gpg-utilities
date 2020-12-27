@@ -154,16 +154,22 @@ Options:
 
               ((and (member :uid expect)
                     (string= "uid" (nth 0 fields)))
-               (let ((validity (nth 1 fields)))
-                 (if (and (not (optionp :invalid))
-                          (plusp (length validity))
-                          (find (aref validity 0) "re"))
-                     (setf expect '(:uid))
-                     (progn
-                       (setf expect '(:tfs :uid))
-                       (format t "uid [~8A] ~A~%"
-                               (format-validity validity 8)
-                               (unescape-user-id (nth 9 fields)))))))
+               (let* ((validity (nth 1 fields))
+                      (uid-string (format nil "uid [~8A] ~A"
+                                          (format-validity validity 8)
+                                          (unescape-user-id (nth 9 fields)))))
+                 (cond ((member key-validity '(:expired :revoked))
+                        (write-line uid-string)
+                        (if (optionp :invalid)
+                            (setf expect '(:tfs :uid))
+                            (setf expect nil)))
+                       ((and (not (optionp :invalid))
+                             (plusp (length validity))
+                             (find (aref validity 0) "re"))
+                        (setf expect '(:uid)))
+                       (t
+                        (write-line uid-string)
+                        (setf expect '(:tfs :uid))))))
 
               ((and (member :tfs expect)
                     (string= "tfs" (nth 0 fields))
