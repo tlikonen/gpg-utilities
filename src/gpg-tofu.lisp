@@ -116,13 +116,20 @@ Options:
                                 :output :stream
                                 :error nil)))
 
-    (loop :with expect :with want-empty-line
+    (loop :with expect :with want-empty-line :with expires
+          :with key-validity
           :for line := (read-line gpg nil)
           :for fields := (if line (split-colon-string line))
           :while line :do
 
             (cond
               ((string= "pub" (nth 0 fields))
+               (setf key-validity (let ((field (nth 1 fields)))
+                                    (when (plusp (length field))
+                                      (case (aref field 0)
+                                        (#\r :revoked)
+                                        (#\e :expired)))))
+               (setf expires (parse-time-stamp (nth 6 fields)))
                (setf expect '(:fpr))
                (when want-empty-line (format t "~%"))
                (setf want-empty-line t))
@@ -130,7 +137,17 @@ Options:
               ((and (member :fpr expect)
                     (string= "fpr" (nth 0 fields)))
                (setf expect '(:uid))
-               (format t "pub ~A~%" (nth 9 fields)))
+               (format t "pub ~A (~A)~%" (nth 9 fields)
+                       (cond ((eql key-validity :revoked)
+                              "revoked")
+                             ((eql key-validity :expired)
+                              (format nil "expired: ~A"
+                                      (format-time-stamp expires)))
+                             ((null expires)
+                              "expires: never")
+                             (t
+                              (format nil "expires: ~A"
+                                      (format-time-stamp expires))))))
 
               ((string= "sub" (nth 0 fields))
                (setf expect nil))
