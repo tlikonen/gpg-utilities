@@ -22,6 +22,15 @@
                  local-time:+utc-zone+
                  local-time:*default-timezone*)))
 
+(defun format-time-stamp-day (universal-time)
+  (local-time:format-timestring
+   nil
+   (local-time:universal-to-timestamp universal-time)
+   :format '((:year 4) "-" (:month 2) "-" (:day 2))
+   :timezone (if (optionp :utc)
+                 local-time:+utc-zone+
+                 local-time:*default-timezone*)))
+
 (defun format-time-interval (utime1 utime2)
   (format nil "~A/~A" (format-time-stamp utime1) (format-time-stamp utime2)))
 
@@ -137,17 +146,17 @@ Options:
               ((and (member :fpr expect)
                     (string= "fpr" (nth 0 fields)))
                (setf expect '(:uid))
-               (format t "pub ~A (~A)~%" (nth 9 fields)
+               (format t "pub ~A [~A]~%" (nth 9 fields)
                        (cond ((eql key-validity :revoked)
                               "revoked")
                              ((eql key-validity :expired)
                               (format nil "expired: ~A"
-                                      (format-time-stamp expires)))
+                                      (format-time-stamp-day expires)))
                              ((null expires)
                               "expires: never")
                              (t
                               (format nil "expires: ~A"
-                                      (format-time-stamp expires))))))
+                                      (format-time-stamp-day expires))))))
 
               ((string= "sub" (nth 0 fields))
                (setf expect nil))
